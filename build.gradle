@@ -58,10 +58,11 @@ plugins {
 
 apply plugin: 'com.jfrog.artifactory'
 
-group 'org.example'
-version '1.0-SNAPSHOT'
-
 allprojects {
+
+    group 'net.corda'
+    version cordaReleaseVersion
+
     repositories {
         mavenLocal()
         // Use system environment to activate caching with Artifactory,
@@ -109,6 +110,15 @@ allprojects {
             maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
             mavenCentral()
             jcenter()
+        }
+    }
+    tasks.withType(Jar).configureEach { task ->
+        // Includes War and Ear
+        manifest {
+            attributes('Corda-Release-Version': cordaReleaseVersion)
+            attributes('Corda-Platform-Version': cordaPlatformVersion)
+            attributes('Corda-Vendor': 'Corda Open Source')
+            attributes('Automatic-Module-Name': "net.corda.${task.project.name.replaceAll('-', '.')}")
         }
     }
 }
