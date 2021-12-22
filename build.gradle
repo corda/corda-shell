@@ -1,0 +1,150 @@
+import static org.gradle.api.JavaVersion.VERSION_1_8
+
+buildscript {
+//    ext {
+//        kotlinVersion = "kotlinVersion"
+//    }
+    repositories {
+        mavenLocal()
+        // Use system environment to activate caching with Artifactory,
+        // because it is actually easier to pass that during parallel build.
+        // NOTE: it has to be a name of a virtual repository with all
+        // required remote or local repositories!
+        if (System.getenv("CORDA_USE_CACHE")) {
+            maven {
+                name "R3 Maven remote repositories"
+                url "${artifactoryContextUrl}/${System.getenv("CORDA_USE_CACHE")}"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
+        } else {
+            maven {
+                url "${artifactoryContextUrl}/corda-dependencies-dev"
+                content {
+                    includeGroupByRegex 'net\\.corda(\\..*)?'
+                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                }
+            }
+            maven {
+                url "${artifactoryContextUrl}/corda-releases"
+                content {
+                    includeGroupByRegex 'net\\.corda(\\..*)?'
+                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                }
+            }
+            maven { url 'https://software.r3.com/artifactory/corda-releases' }
+            maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
+            mavenCentral()
+            jcenter()
+        }
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "net.corda.plugins:quasar-utils:$gradlePluginsVersion"
+        classpath "net.corda.plugins:publish-utils:$gradlePluginsVersion"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:$artifactoryPluginVersion"
+    }
+}
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
+//    id 'com.jfrog.artifactory'
+}
+
+apply plugin: 'com.jfrog.artifactory'
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+allprojects {
+    repositories {
+        mavenLocal()
+        // Use system environment to activate caching with Artifactory,
+        // because it is actually easier to pass that during parallel build.
+        // NOTE: it has to be a name of a virtual repository with all
+        // required remote or local repositories!
+        if (System.getenv("CORDA_USE_CACHE")) {
+            maven {
+                name "R3 Maven remote repositories"
+                url "${artifactoryContextUrl}/${System.getenv("CORDA_USE_CACHE")}"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
+        } else {
+            maven {
+                url "${artifactoryContextUrl}/corda-dependencies"
+                content {
+                    includeGroupByRegex 'net\\.corda(\\..*)?'
+                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                    includeGroup 'co.paralleluniverse'
+                    includeGroup 'org.crashub'
+                    includeGroup 'com.github.bft-smart'
+                }
+            }
+            maven {
+                url "${artifactoryContextUrl}/corda-dev"
+                content {
+                    includeGroupByRegex 'net\\.corda(\\..*)?'
+                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                }
+            }
+            maven {
+                url 'https://repo.gradle.org/gradle/libs-releases'
+                content {
+                    includeGroup 'org.gradle'
+                    includeGroup 'com.github.detro'
+                }
+            }
+            maven { url 'https://software.r3.com/artifactory/corda-releases' }
+            maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
+            mavenCentral()
+            jcenter()
+        }
+    }
+}
+
+dependencies {
+//    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+}
+
+allprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            languageVersion = "1.2"
+            apiVersion = "1.2"
+            jvmTarget = VERSION_1_8
+            javaParameters = true   // Useful for reflection.
+            freeCompilerArgs = ['-Xjvm-default=compatibility']
+            allWarningsAsErrors = true
+        }
+    }
+}
+
+artifactory {
+    publish {
+        contextUrl = artifactoryContextUrl
+        repository {
+            repoKey = 'corda-dev'
+            username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+            password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+        }
+
+        defaults {
+            // Root project applies the plugin (for this block) but does not need to be published
+            if (project != rootProject) {
+                publications(project.extensions.publish.name())
+            }
+        }
+    }
+}
