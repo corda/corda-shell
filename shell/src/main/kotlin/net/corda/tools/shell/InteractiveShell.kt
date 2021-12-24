@@ -76,17 +76,6 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 import kotlin.concurrent.thread
 
-// TODO: Add command history.
-// TODO: Command completion.
-// TODO: Do something sensible with commands that return a future.
-// TODO: Configure default renderers, send objects down the pipeline, add support for xml output format.
-// TODO: Add a command to view last N lines/tail/control log4j2 loggers.
-// TODO: Review or fix the JVM commands which have bitrotted and some are useless.
-// TODO: Get rid of the 'java' command, it's kind of worthless.
-// TODO: Fix up the 'dashboard' command which has some rendering issues.
-// TODO: Resurrect or reimplement the mail plugin.
-// TODO: Make it notice new shell commands added after the node started.
-
 const val STANDALONE_SHELL_PERMISSION = "ALL"
 
 @Suppress("MaxLineLength")
@@ -112,6 +101,11 @@ object InteractiveShell {
     fun startShell(configuration: ShellConfiguration, classLoader: ClassLoader? = null, standalone: Boolean = false) {
         rpcOpsProducer = DefaultRPCOpsProducer(configuration, classLoader, standalone)
         launchShell(configuration, standalone, classLoader)
+    }
+
+    @Suppress("Unused")
+    fun startShell(configuration: Map<String, Any?>, classLoader: ClassLoader? = null, standalone: Boolean = false) {
+        startShell(ShellConfiguration(configuration), classLoader, standalone)
     }
 
     private fun launchShell(configuration: ShellConfiguration, standalone: Boolean, classLoader: ClassLoader? = null) {
