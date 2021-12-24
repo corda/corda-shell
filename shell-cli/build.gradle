@@ -4,6 +4,7 @@ plugins {
 
 description 'Corda Shell CLI'
 
+apply plugin: 'kotlin'
 apply plugin: 'application'
 // We need to set mainClassName before applying the shadow plugin.
 mainClassName = 'net.corda.tools.shell.StandaloneShellKt'
