@@ -3,6 +3,8 @@ apply plugin: 'java'
 apply plugin: 'net.corda.plugins.quasar-utils'
 apply plugin: 'net.corda.plugins.publish-utils'
 apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'maven-publish'
 
 description 'Corda Shell'
 
@@ -96,6 +98,16 @@ task integrationTest(type: Test) {
 
 jar {
     baseName 'corda-shell'
+}
+
+shadowJar {
+    archiveBaseName.set('corda-shell')
+    mergeServiceFiles()
+}
+
+artifacts {
+    archives shadowJar
+    publish shadowJar
 }
 
 publish {
