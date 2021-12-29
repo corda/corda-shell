@@ -1,8 +1,8 @@
 package net.corda.tools.shell
 
+import net.corda.core.context.InvocationContext
 import net.corda.core.flows.StateMachineRunId
 import net.corda.core.internal.concurrent.openFuture
-import net.corda.core.context.InvocationContext
 import net.corda.core.messaging.StateMachineUpdate
 import net.corda.core.messaging.StateMachineUpdate.Added
 import net.corda.core.messaging.StateMachineUpdate.Removed
@@ -69,12 +69,14 @@ class FlowWatchPrintingSubscriber(private val toStream: RenderPrintWriter) : Sub
     private fun createStateMachinesRow(smmUpdate: StateMachineUpdate) {
         when (smmUpdate) {
             is Added -> {
-                table.add(RowElement().add(
+                table.add(
+                    RowElement().add(
                         LabelElement(formatFlowId(smmUpdate.id)),
                         LabelElement(formatFlowName(smmUpdate.stateMachineInfo.flowLogicClassName)),
                         LabelElement(formatInvocationContext(smmUpdate.stateMachineInfo.invocationContext)),
                         LabelElement("In progress")
-                ).style(stateColor(smmUpdate).fg()))
+                    ).style(stateColor(smmUpdate).fg())
+                )
                 indexMap[smmUpdate.id] = table.rows.size - 1
             }
             is Removed -> {
@@ -84,10 +86,10 @@ class FlowWatchPrintingSubscriber(private val toStream: RenderPrintWriter) : Sub
                     val flowNameLabel = oldRow.getCol(1) as LabelElement
                     val flowInitiatorLabel = oldRow.getCol(2) as LabelElement
                     table.rows[idx] = RowElement().add(
-                            LabelElement(formatFlowId(smmUpdate.id)),
-                            LabelElement(flowNameLabel.value),
-                            LabelElement(flowInitiatorLabel.value),
-                            LabelElement(formatFlowResult(smmUpdate.result))
+                        LabelElement(formatFlowId(smmUpdate.id)),
+                        LabelElement(flowNameLabel.value),
+                        LabelElement(flowInitiatorLabel.value),
+                        LabelElement(formatFlowResult(smmUpdate.result))
                     ).style(stateColor(smmUpdate).fg())
                 }
             }

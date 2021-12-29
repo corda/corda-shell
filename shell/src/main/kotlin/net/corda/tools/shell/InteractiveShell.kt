@@ -134,39 +134,39 @@ object InteractiveShell {
         }
 
         ExternalResolver.INSTANCE.addCommand(
-                "output-format",
-                "Commands to inspect and update the output format.",
-                OutputFormatCommand::class.java
+            "output-format",
+            "Commands to inspect and update the output format.",
+            OutputFormatCommand::class.java
         )
         ExternalResolver.INSTANCE.addCommand(
-                "run",
-                "Runs a method from the CordaRPCOps interface on the node.",
-                RunShellCommand::class.java
+            "run",
+            "Runs a method from the CordaRPCOps interface on the node.",
+            RunShellCommand::class.java
         )
         ExternalResolver.INSTANCE.addCommand(
-                "flow",
-                "Commands to work with flows. Flows are how you can change the ledger.",
-                FlowShellCommand::class.java
+            "flow",
+            "Commands to work with flows. Flows are how you can change the ledger.",
+            FlowShellCommand::class.java
         )
         ExternalResolver.INSTANCE.addCommand(
-                "start",
-                "An alias for 'flow start'",
-                StartShellCommand::class.java
+            "start",
+            "An alias for 'flow start'",
+            StartShellCommand::class.java
         )
         ExternalResolver.INSTANCE.addCommand(
-                "hashLookup",
-                "Checks if a transaction with matching Id hash exists.",
-                HashLookupShellCommand::class.java
+            "hashLookup",
+            "Checks if a transaction with matching Id hash exists.",
+            HashLookupShellCommand::class.java
         )
         ExternalResolver.INSTANCE.addCommand(
-                "attachments",
-                "Commands to extract information about attachments stored within the node",
-                AttachmentShellCommand::class.java
+            "attachments",
+            "Commands to extract information about attachments stored within the node",
+            AttachmentShellCommand::class.java
         )
         ExternalResolver.INSTANCE.addCommand(
-                "checkpoints",
-                "Commands to extract information about checkpoints stored within the node",
-                CheckpointShellCommand::class.java
+            "checkpoints",
+            "Commands to extract information about checkpoints stored within the node",
+            CheckpointShellCommand::class.java
         )
 
         val shellSafety = ShellSafety().apply {
@@ -214,16 +214,16 @@ object InteractiveShell {
 
             val extraCommandsPath = shellCommands.toAbsolutePath().createDirectories()
             val commandsFS = FS.Builder()
-                    .register("file", fileDriver)
-                    .mount("file:$extraCommandsPath")
-                    .register("classpath", classpathDriver)
-                    .mount("classpath:/net/corda/tools/shell/")
-                    .mount("classpath:/crash/commands/")
-                    .build()
+                .register("file", fileDriver)
+                .mount("file:$extraCommandsPath")
+                .register("classpath", classpathDriver)
+                .mount("classpath:/net/corda/tools/shell/")
+                .mount("classpath:/crash/commands/")
+                .build()
             val confFS = FS.Builder()
-                    .register("classpath", classpathDriver)
-                    .mount("classpath:/crash")
-                    .build()
+                .register("classpath", classpathDriver)
+                .mount("classpath:/crash")
+                .build()
 
             val discovery = object : ServiceLoaderDiscovery(classLoader) {
                 override fun getPlugins(): Iterable<CRaSHPlugin<*>> {
@@ -282,7 +282,7 @@ object InteractiveShell {
     }
 
     private fun createOutputMapper(outputFormat: OutputFormat): ObjectMapper {
-        val factory = when(outputFormat) {
+        val factory = when (outputFormat) {
             OutputFormat.JSON -> JsonFactory()
             OutputFormat.YAML -> YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
         }
@@ -314,12 +314,14 @@ object InteractiveShell {
      * the [runFlowFromString] method and starts the requested flow. Ctrl-C can be used to cancel.
      */
     @JvmStatic
-    fun runFlowByNameFragment(nameFragment: String,
-                              inputData: String,
-                              output: RenderPrintWriter,
-                              rpcOps: CordaRPCOps,
-                              ansiProgressRenderer: ANSIProgressRenderer,
-                              inputObjectMapper: ObjectMapper = createYamlInputMapper(rpcOps)) {
+    fun runFlowByNameFragment(
+        nameFragment: String,
+        inputData: String,
+        output: RenderPrintWriter,
+        rpcOps: CordaRPCOps,
+        ansiProgressRenderer: ANSIProgressRenderer,
+        inputObjectMapper: ObjectMapper = createYamlInputMapper(rpcOps)
+    ) {
         val matches = try {
             rpcOps.registeredFlows().filter { nameFragment in it }.sortedBy { it.length }
         } catch (e: PermissionException) {
@@ -329,13 +331,13 @@ object InteractiveShell {
         if (matches.isEmpty()) {
             output.println("No matching flow found, run 'flow list' to see your options.", Decoration.bold, Color.red)
             return
-        } else if (matches.size > 1 && matches.find { it.endsWith(nameFragment)} == null) {
+        } else if (matches.size > 1 && matches.find { it.endsWith(nameFragment) } == null) {
             output.println("Ambiguous name provided, please be more specific. Your options are:")
             matches.forEachIndexed { i, s -> output.println("${i + 1}. $s", Decoration.bold, Color.yellow) }
             return
         }
 
-        val flowName = matches.find { it.endsWith(nameFragment)} ?: matches.single()
+        val flowName = matches.find { it.endsWith(nameFragment) } ?: matches.single()
         val flowClazz: Class<FlowLogic<*>> = if (classLoader != null) {
             uncheckedCast(Class.forName(flowName, true, classLoader))
         } else {
@@ -345,10 +347,10 @@ object InteractiveShell {
             // Show the progress tracker on the console until the flow completes or is interrupted with a
             // Ctrl-C keypress.
             val stateObservable = runFlowFromString(
-                    { clazz, args -> rpcOps.startTrackedFlowDynamic(clazz, *args) },
-                    inputData,
-                    flowClazz,
-                    inputObjectMapper
+                { clazz, args -> rpcOps.startTrackedFlowDynamic(clazz, *args) },
+                inputData,
+                flowClazz,
+                inputObjectMapper
             )
 
             latch = CountDownLatch(1)
@@ -383,7 +385,7 @@ object InteractiveShell {
 
     class NoApplicableConstructor(val errors: List<String>) : CordaException(this.toString()) {
         override fun toString() =
-                (listOf("No applicable constructor for flow. Problems were:") + errors).joinToString(System.lineSeparator())
+            (listOf("No applicable constructor for flow. Problems were:") + errors).joinToString(System.lineSeparator())
     }
 
     /**
@@ -419,10 +421,12 @@ object InteractiveShell {
     }
 
     @JvmStatic
-    fun killFlowById(id: String,
-                     output: RenderPrintWriter,
-                     rpcOps: CordaRPCOps,
-                     inputObjectMapper: ObjectMapper = createYamlInputMapper(rpcOps)) {
+    fun killFlowById(
+        id: String,
+        output: RenderPrintWriter,
+        rpcOps: CordaRPCOps,
+        inputObjectMapper: ObjectMapper = createYamlInputMapper(rpcOps)
+    ) {
         try {
             val runId = try {
                 inputObjectMapper.readValue(id, StateMachineRunId::class.java)
@@ -433,8 +437,9 @@ object InteractiveShell {
             }
             //auxiliary validation - workaround for JDK8 bug https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8159339
             if (id.length < uuidStringSize) {
-                val msg = "Can not kill the flow. Flow ID of '$id' seems to be malformed - a UUID should have $uuidStringSize characters. " +
-                        "Expand the terminal window to see the full UUID value."
+                val msg =
+                    "Can not kill the flow. Flow ID of '$id' seems to be malformed - a UUID should have $uuidStringSize characters. " +
+                            "Expand the terminal window to see the full UUID value."
                 output.println(msg, Decoration.bold, Color.red)
                 log.warn(msg)
                 return
@@ -459,10 +464,12 @@ object InteractiveShell {
      * @throws NoApplicableConstructor if no constructor could be found for the given set of types.
      */
     @Throws(NoApplicableConstructor::class)
-    fun <T> runFlowFromString(invoke: (Class<out FlowLogic<T>>, Array<out Any?>) -> FlowProgressHandle<T>,
-                              inputData: String,
-                              clazz: Class<out FlowLogic<T>>,
-                              om: ObjectMapper): FlowProgressHandle<T> {
+    fun <T> runFlowFromString(
+        invoke: (Class<out FlowLogic<T>>, Array<out Any?>) -> FlowProgressHandle<T>,
+        inputData: String,
+        clazz: Class<out FlowLogic<T>>,
+        om: ObjectMapper
+    ): FlowProgressHandle<T> {
 
         val errors = ArrayList<String>()
         val parser = StringToMethodCallParser(clazz, om)
@@ -481,9 +488,11 @@ object InteractiveShell {
         throw NoApplicableConstructor(errors)
     }
 
-    private fun <T> getMatchingConstructorParamsAndTypes(parser: StringToMethodCallParser<FlowLogic<T>>,
-                                                         inputData: String,
-                                                         clazz: Class<out FlowLogic<T>>) : List<Pair<String, Type>> {
+    private fun <T> getMatchingConstructorParamsAndTypes(
+        parser: StringToMethodCallParser<FlowLogic<T>>,
+        inputData: String,
+        clazz: Class<out FlowLogic<T>>
+    ): List<Pair<String, Type>> {
         val errors = ArrayList<String>()
         val classPackage = clazz.packageName_
         lateinit var paramNamesFromConstructor: List<String>
@@ -504,19 +513,14 @@ object InteractiveShell {
                 val nameTypeList = paramNamesFromConstructor.zip(ctor.genericParameterTypes)
                 parser.validateIsMatchingCtor(clazz.name, nameTypeList, inputData)
                 return nameTypeList
-
-            }
-            catch (e: StringToMethodCallParser.UnparseableCallException.MissingParameter) {
+            } catch (e: StringToMethodCallParser.UnparseableCallException.MissingParameter) {
                 errors.add("${getPrototype()}: missing parameter ${e.paramName}")
-            }
-            catch (e: StringToMethodCallParser.UnparseableCallException.TooManyParameters) {
+            } catch (e: StringToMethodCallParser.UnparseableCallException.TooManyParameters) {
                 errors.add("${getPrototype()}: too many parameters")
-            }
-            catch (e: StringToMethodCallParser.UnparseableCallException.ReflectionDataMissing) {
+            } catch (e: StringToMethodCallParser.UnparseableCallException.ReflectionDataMissing) {
                 val argTypes = ctor.genericParameterTypes.map { it.typeName }
                 errors.add("$argTypes: <constructor missing parameter reflection data>")
-            }
-            catch (e: StringToMethodCallParser.UnparseableCallException) {
+            } catch (e: StringToMethodCallParser.UnparseableCallException) {
                 val argTypes = ctor.genericParameterTypes.map { it.typeName }
                 errors.add("$argTypes: ${e.message}")
             }
@@ -572,14 +576,20 @@ object InteractiveShell {
     }
 
     @JvmStatic
-    fun runRPCFromString(input: List<String>, out: RenderPrintWriter, context: InvocationContext<out Any>, cordaRPCOps: CordaRPCOps,
-                         inputObjectMapper: ObjectMapper): Any? {
+    fun runRPCFromString(
+        input: List<String>, out: RenderPrintWriter, context: InvocationContext<out Any>, cordaRPCOps: CordaRPCOps,
+        inputObjectMapper: ObjectMapper
+    ): Any? {
         val cmd = input.joinToString(" ").trim { it <= ' ' }
         if (cmd.startsWith("startflow", ignoreCase = true)) {
             // The flow command provides better support and startFlow requires special handling anyway due to
             // the generic startFlow RPC interface which offers no type information with which to parse the
             // string form of the command.
-            out.println("Please use the 'flow' command to interact with flows rather than the 'run' command.", Decoration.bold, Color.yellow)
+            out.println(
+                "Please use the 'flow' command to interact with flows rather than the 'run' command.",
+                Decoration.bold,
+                Color.yellow
+            )
             return null
         } else if (cmd.substringAfter(" ").trim().equals("gracefulShutdown", ignoreCase = true)) {
             return gracefulShutdown(out, cordaRPCOps)
@@ -591,7 +601,7 @@ object InteractiveShell {
             val parser = StringToMethodCallParser(CordaRPCOps::class.java, inputObjectMapper)
             val call = parser.parse(cordaRPCOps, cmd)
             result = call.call()
-            var subscription : Subscriber<*>? = null
+            var subscription: Subscriber<*>? = null
             if (result != null && result !== Unit && result !is Void) {
                 val (subs, future) = printAndFollowRPCResponse(result, out, outputFormat)
                 subscription = subs
@@ -649,24 +659,25 @@ object InteractiveShell {
             }
 
             val latch = CountDownLatch(1)
+
             @Suppress("DEPRECATION")
             val subscription = cordaRPCOps.pendingFlowsCount().updates
-                    .doAfterTerminate(latch::countDown)
-                    .subscribe(
-                            // For each update.
-                            { (completed, total) -> display { println("...remaining: $completed / $total") } },
-                            // On error.
-                            {
-                                log.error(it.message)
-                                throw it
-                            },
-                            // When completed.
-                            {
-                                // This will only show up in the standalone Shell, because the embedded one
-                                // is killed as part of a node's shutdown.
-                                display { println("...done, quitting the shell now.") }
-                            }
-                    )
+                .doAfterTerminate(latch::countDown)
+                .subscribe(
+                    // For each update.
+                    { (completed, total) -> display { println("...remaining: $completed / $total") } },
+                    // On error.
+                    {
+                        log.error(it.message)
+                        throw it
+                    },
+                    // When completed.
+                    {
+                        // This will only show up in the standalone Shell, because the embedded one
+                        // is killed as part of a node's shutdown.
+                        display { println("...done, quitting the shell now.") }
+                    }
+                )
             cordaRPCOps.terminate(true)
 
             try {
@@ -692,9 +703,9 @@ object InteractiveShell {
     }
 
     private fun printAndFollowRPCResponse(
-            response: Any?,
-            out: PrintWriter,
-            outputFormat: OutputFormat
+        response: Any?,
+        out: PrintWriter,
+        outputFormat: OutputFormat
     ): Pair<PrintingSubscriber?, CordaFuture<Unit>> {
         val outputMapper = createOutputMapper(outputFormat)
 
@@ -734,9 +745,9 @@ object InteractiveShell {
     }
 
     private fun maybeFollow(
-            response: Any?,
-            printerFun: (Any?) -> String,
-            out: PrintWriter
+        response: Any?,
+        printerFun: (Any?) -> String,
+        out: PrintWriter
     ): Pair<PrintingSubscriber?, CordaFuture<Unit>> {
         // Match on a couple of common patterns for "important" observables. It's tough to do this in a generic
         // way because observables can be embedded anywhere in the object graph, and can emit other arbitrary
@@ -772,13 +783,12 @@ object InteractiveShell {
     }
 
     private fun printNextElements(
-            elements: Observable<*>,
-            printerFun: (Any?) -> String,
-            out: PrintWriter
+        elements: Observable<*>,
+        printerFun: (Any?) -> String,
+        out: PrintWriter
     ): Pair<PrintingSubscriber?, CordaFuture<Unit>> {
         val subscriber = PrintingSubscriber(printerFun, out)
         uncheckedCast(elements).subscribe(subscriber)
         return Pair(subscriber, subscriber.future)
     }
-
 }

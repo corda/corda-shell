@@ -7,14 +7,15 @@ import org.crsh.cli.Named;
 import org.crsh.cli.Usage;
 import org.jetbrains.annotations.NotNull;
 
-import static net.corda.tools.shell.InteractiveShell.*;
+import static net.corda.tools.shell.InteractiveShell.runDebugCheckpoints;
+import static net.corda.tools.shell.InteractiveShell.runDumpCheckpoints;
 
 @Named("checkpoints")
 public class CheckpointShellCommand extends InteractiveShellCommand<FlowManagerRPCOps> {
 
     @NotNull
     @Override
-    public Class<FlowManagerRPCOps> getRpcOpsClass()  {
+    public Class<FlowManagerRPCOps> getRpcOpsClass() {
         return FlowManagerRPCOps.class;
     }
 

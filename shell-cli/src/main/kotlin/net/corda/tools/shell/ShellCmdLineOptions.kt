@@ -13,68 +13,64 @@ import java.nio.file.Paths
 
 class ShellCmdLineOptions {
     @Option(
-            names = ["-f", "--config-file"],
-            description = ["The path to the shell configuration file, used instead of providing the rest of command line options."]
+        names = ["-f", "--config-file"],
+        description = ["The path to the shell configuration file, used instead of providing the rest of command line options."]
     )
     var configFile: Path? = null
 
     @Option(
-            names = ["-c", "--cordapp-directory"],
-            description = ["The path to the directory containing CorDapp JARs, CorDapps are required when starting flows."]
+        names = ["-c", "--cordapp-directory"],
+        description = ["The path to the directory containing CorDapp JARs, CorDapps are required when starting flows."]
     )
     var cordappDirectory: Path? = null
 
     @Option(
-            names = ["-o", "--commands-directory"],
-            description = ["The path to the directory containing additional CRaSH shell commands."]
+        names = ["-o", "--commands-directory"],
+        description = ["The path to the directory containing additional CRaSH shell commands."]
     )
     var commandsDirectory: Path? = null
 
     @Option(
-            names = ["-a", "--host"],
-            description = ["The host address of the Corda node."]
+        names = ["-a", "--host"],
+        description = ["The host address of the Corda node."]
     )
     var host: String? = null
 
     @Option(
-            names = ["-p", "--port"],
-            description = ["The RPC port of the Corda node."]
+        names = ["-p", "--port"],
+        description = ["The RPC port of the Corda node."]
     )
     var port: String? = null
 
     @Option(
-            names = ["--user"],
-            description = ["The RPC user name."]
+        names = ["--user"],
+        description = ["The RPC user name."]
     )
     var user: String? = null
 
     @Option(
-            names = ["--password"],
-            description = ["The RPC user password."]
+        names = ["--password"],
+        description = ["The RPC user password."]
     )
     var password: String? = null
 
-
     @Option(
-            names = ["--truststore-password"],
-            description = ["The password to unlock the TrustStore file."]
+        names = ["--truststore-password"],
+        description = ["The password to unlock the TrustStore file."]
     )
     var trustStorePassword: String? = null
 
-
     @Option(
-            names = ["--truststore-file"],
-            description = ["The path to the TrustStore file."]
+        names = ["--truststore-file"],
+        description = ["The path to the TrustStore file."]
     )
     var trustStoreFile: Path? = null
 
-
     @Option(
-            names = ["--truststore-type"],
-            description = ["The type of the TrustStore (e.g. JKS)."]
+        names = ["--truststore-type"],
+        description = ["The type of the TrustStore (e.g. JKS)."]
     )
     var trustStoreType: String? = null
-
 
     private fun toConfigFile(): Config {
         val cmdOpts = mutableMapOf<String, Any?>()
@@ -96,7 +92,7 @@ class ShellCmdLineOptions {
      * and then overridden by the command line options */
     fun toConfig(): ShellConfiguration {
         val fileConfig = configFile?.let { ConfigFactory.parseFile(it.toFile()) }
-                ?: ConfigFactory.empty()
+            ?: ConfigFactory.empty()
         val typeSafeConfig = toConfigFile().withFallback(fileConfig).resolve()
         val shellConfigFile = typeSafeConfig.parseAs<ShellConfigurationFile.ShellConfigFile>()
         return shellConfigFile.toShellConfiguration()
@@ -106,64 +102,67 @@ class ShellCmdLineOptions {
 /** Object representation of Shell configuration file */
 private class ShellConfigurationFile {
     data class Rpc(
-            val host: String,
-            val port: Int)
+        val host: String,
+        val port: Int
+    )
 
     data class Addresses(
-            val rpc: Rpc
+        val rpc: Rpc
     )
 
     data class Node(
-            val addresses: Addresses,
-            val user: String?,
-            val password: String?
+        val addresses: Addresses,
+        val user: String?,
+        val password: String?
     )
 
     data class Cordapps(
-            val path: String
+        val path: String
     )
 
     data class Commands(
-            val path: String
+        val path: String
     )
 
     data class Extensions(
-            val cordapps: Cordapps?,
-            val commands: Commands?
+        val cordapps: Cordapps?,
+        val commands: Commands?
     )
 
     data class KeyStore(
-            val path: String,
-            val type: String = "JKS",
-            val password: String
+        val path: String,
+        val type: String = "JKS",
+        val password: String
     )
 
     data class Ssl(
-            val truststore: KeyStore
+        val truststore: KeyStore
     )
 
     data class ShellConfigFile(
-            val node: Node,
-            val extensions: Extensions?,
-            val ssl: Ssl?
+        val node: Node,
+        val extensions: Extensions?,
+        val ssl: Ssl?
     ) {
         fun toShellConfiguration(): ShellConfiguration {
 
             val sslOptions =
-                    ssl?.let {
-                        ClientRpcSslOptions(
-                                trustStorePath = Paths.get(it.truststore.path),
-                                trustStorePassword = it.truststore.password)
-                    }
+                ssl?.let {
+                    ClientRpcSslOptions(
+                        trustStorePath = Paths.get(it.truststore.path),
+                        trustStorePassword = it.truststore.password
+                    )
+                }
 
             return ShellConfiguration(
-                    commandsDirectory = extensions?.commands?.let { Paths.get(it.path) } ?: Paths.get(".")
-                    / COMMANDS_DIR,
-                    cordappsDirectory = extensions?.cordapps?.let { Paths.get(it.path) },
-                    user = node.user ?: "",
-                    password = node.password ?: "",
-                    hostAndPort = NetworkHostAndPort(node.addresses.rpc.host, node.addresses.rpc.port),
-                    ssl = sslOptions)
+                commandsDirectory = extensions?.commands?.let { Paths.get(it.path) } ?: Paths.get(".")
+                / COMMANDS_DIR,
+                cordappsDirectory = extensions?.cordapps?.let { Paths.get(it.path) },
+                user = node.user ?: "",
+                password = node.password ?: "",
+                hostAndPort = NetworkHostAndPort(node.addresses.rpc.host, node.addresses.rpc.port),
+                ssl = sslOptions
+            )
         }
     }
 }

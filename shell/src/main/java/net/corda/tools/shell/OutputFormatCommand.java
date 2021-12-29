@@ -20,7 +20,8 @@ import java.util.Map;
 @Named("output-format")
 public class OutputFormatCommand extends CordaRpcOpsShellCommand {
 
-    public OutputFormatCommand() {}
+    public OutputFormatCommand() {
+    }
 
     @VisibleForTesting
     OutputFormatCommand(final RenderPrintWriter printWriter) {
@@ -28,15 +29,17 @@ public class OutputFormatCommand extends CordaRpcOpsShellCommand {
     }
 
     private static final BiMap<String, OutputFormat> OUTPUT_FORMAT_MAPPING = ImmutableBiMap.of(
-            "json", OutputFormat.JSON,
-            "yaml", OutputFormat.YAML
+        "json", OutputFormat.JSON,
+        "yaml", OutputFormat.YAML
     );
 
     @Command
     @Man("Sets the output format of the commands.")
     @Usage("sets the output format of the commands.")
-    public void set(InvocationContext<Map> context,
-                    @Usage("The format of the commands output. Supported values: json, yaml.") @Argument String format) {
+    public void set(
+        InvocationContext<Map> context,
+        @Usage("The format of the commands output. Supported values: json, yaml.") @Argument String format
+    ) {
         OutputFormat outputFormat = parseFormat(format);
 
         InteractiveShell.setOutputFormat(outputFormat);

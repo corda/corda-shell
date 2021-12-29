@@ -59,7 +59,7 @@ dependencies {
 
     // Manifests: for reading stuff from the manifest file.
     compile "com.jcabi:jcabi-manifests:1.1"
-    
+
     // For logging, required for ANSIProgressRenderer.
     compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
 
@@ -67,7 +67,7 @@ dependencies {
 
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junitVintageVersion"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher:$junitPlatformVersion"
-    
+
     // Unit testing helpers.
     testCompile "org.assertj:assertj-core:$assertJVersion"
 //    testCompile project(':test-utils')

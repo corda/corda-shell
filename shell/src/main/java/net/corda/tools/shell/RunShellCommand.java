@@ -31,14 +31,16 @@ public class RunShellCommand extends CordaRpcOpsShellCommand {
 
     @Command
     @Man(
-            "Runs a method from the CordaRPCOps interface, which is the same interface exposed to RPC clients.\n\n" +
+        "Runs a method from the CordaRPCOps interface, which is the same interface exposed to RPC clients.\n\n" +
 
-                    "You can learn more about what commands are available by typing 'run' just by itself, or by\n" +
-                    "consulting the developer guide at https://docs.corda.net/api/kotlin/corda/net.corda.core.messaging/-corda-r-p-c-ops/index.html"
+            "You can learn more about what commands are available by typing 'run' just by itself, or by\n" +
+            "consulting the developer guide at https://docs.corda.net/api/kotlin/corda/net.corda.core.messaging/-corda-r-p-c-ops/index.html"
     )
     @Usage("runs a method from the CordaRPCOps interface on the node.")
-    public Object main(InvocationContext<Map> context,
-                       @Usage("The command to run") @Argument(unquote = false) List<String> command) {
+    public Object main(
+        InvocationContext<Map> context,
+        @Usage("The command to run") @Argument(unquote = false) List<String> command
+    ) {
         logger.info("Executing command \"run {}\",", (command != null) ? String.join(" ", command) : "<no arguments>");
 
         if (command == null) {
@@ -49,7 +51,7 @@ public class RunShellCommand extends CordaRpcOpsShellCommand {
         return InteractiveShell.runRPCFromString(command, out, context, ops(), objectMapper(InteractiveShell.getCordappsClassloader()));
     }
 
-  private void emitHelp(InvocationContext<Map> context) {
+    private void emitHelp(InvocationContext<Map> context) {
         StringToMethodCallParser<CordaRPCOps> cordaRpcOpsParser =
             new StringToMethodCallParser<>(
                 CordaRPCOps.class, objectMapper(InteractiveShell.getCordappsClassloader()));

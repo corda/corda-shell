@@ -10,9 +10,11 @@ import net.corda.core.messaging.RPCOps
 import net.corda.tools.shell.utlities.ANSIProgressRenderer
 import java.lang.reflect.Proxy
 
-internal class CordaSSHAuthInfo(private val rpcOpsProducer: RPCOpsProducer,
-                                private val username: String, private val credential: String, val ansiProgressRenderer: ANSIProgressRenderer? = null,
-                                val isSsh: Boolean = false) : SshAuthInfo  {
+internal class CordaSSHAuthInfo(
+    private val rpcOpsProducer: RPCOpsProducer,
+    private val username: String, private val credential: String, val ansiProgressRenderer: ANSIProgressRenderer? = null,
+    val isSsh: Boolean = false
+) : SshAuthInfo {
     override fun isSuccessful(): Boolean = true
 
     /**
@@ -20,10 +22,10 @@ internal class CordaSSHAuthInfo(private val rpcOpsProducer: RPCOpsProducer,
      * closed when cache entry is eliminated
      */
     private val proxiesCache = Caffeine.newBuilder()
-            .maximumSize(10)
-            .removalListener(RemovalListener<Class<out RPCOps>, Pair<RPCOps, RPCConnection<RPCOps>>> { _, value, _ -> value?.second?.close() })
-            .executor(MoreExecutors.directExecutor())
-            .build(CacheLoader<Class<out RPCOps>, Pair<RPCOps, RPCConnection<RPCOps>>> { key -> createRpcOps(key) })
+        .maximumSize(10)
+        .removalListener(RemovalListener<Class<out RPCOps>, Pair<RPCOps, RPCConnection<RPCOps>>> { _, value, _ -> value?.second?.close() })
+        .executor(MoreExecutors.directExecutor())
+        .build(CacheLoader<Class<out RPCOps>, Pair<RPCOps, RPCConnection<RPCOps>>> { key -> createRpcOps(key) })
 
     override fun <T : RPCOps> getOrCreateRpcOps(rpcOpsClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")

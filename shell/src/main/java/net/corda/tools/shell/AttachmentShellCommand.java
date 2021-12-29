@@ -14,7 +14,7 @@ public class AttachmentShellCommand extends InteractiveShellCommand<AttachmentTr
 
     @NotNull
     @Override
-    public Class<AttachmentTrustInfoRPCOps> getRpcOpsClass()  {
+    public Class<AttachmentTrustInfoRPCOps> getRpcOpsClass() {
         return AttachmentTrustInfoRPCOps.class;
     }
 

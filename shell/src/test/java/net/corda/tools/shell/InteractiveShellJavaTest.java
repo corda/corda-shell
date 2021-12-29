@@ -26,7 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import rx.Observable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Currency;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
@@ -127,11 +128,9 @@ public class InteractiveShellJavaTest {
         public String call() throws FlowException {
             FlowSession session = initiateFlow(party);
 
-
             Integer integer = session.receive(Integer.class).unwrap((i) -> i);
 
             return integer.toString();
-
         }
 
         @Override
@@ -159,17 +158,23 @@ public class InteractiveShellJavaTest {
         }
     }
 
-    private InMemoryIdentityService ids = new InMemoryIdentityService(Lists.newArrayList(megaCorp.getIdentity()), InternalTestConstantsKt.getDEV_ROOT_CA().getCertificate());
+    private InMemoryIdentityService ids =
+        new InMemoryIdentityService(Lists.newArrayList(megaCorp.getIdentity()), InternalTestConstantsKt.getDEV_ROOT_CA().getCertificate());
 
     private ObjectMapper om = JacksonSupport.createInMemoryMapper(ids, new YAMLFactory());
 
     private String output;
 
-    private void check(String input, String expected, Class<? extends StringFlow> flowClass) throws InteractiveShell.NoApplicableConstructor {
+    private void check(
+        String input,
+        String expected,
+        Class<? extends StringFlow> flowClass
+    ) throws InteractiveShell.NoApplicableConstructor {
         InteractiveShell.INSTANCE.runFlowFromString((clazz, args) -> {
             StringFlow instance = null;
             try {
-                instance = (StringFlow)clazz.getConstructor(Arrays.stream(args).map(Object::getClass).toArray(Class[]::new)).newInstance(args);
+                instance =
+                    (StringFlow) clazz.getConstructor(Arrays.stream(args).map(Object::getClass).toArray(Class[]::new)).newInstance(args);
             } catch (Exception e) {
                 System.out.println(e);
                 throw new RuntimeException(e);
@@ -201,7 +206,8 @@ public class InteractiveShellJavaTest {
         check(
             "pair: { first: $100.12, second: df489807f81c8c8829e509e1bcb92e6692b9dd9d624b7456435cb2f51dc82587 }",
             "(100.12 USD, DF489807F81C8C8829E509E1BCB92E6692B9DD9D624B7456435CB2F51DC82587)",
-            FlowA.class);
+            FlowA.class
+        );
     }
 
     @Test
@@ -209,16 +215,17 @@ public class InteractiveShellJavaTest {
         check(
             "b: 500, amount: { \"quantity\": 10001, \"token\":{ \"label\": \"of value\" } }",
             "10501 of value",
-            FlowA.class);
+            FlowA.class
+        );
     }
 
     @Test
     public void flowStartWithArrayType() throws InteractiveShell.NoApplicableConstructor {
         if (!IS_OPENJ9) {
             check(
-                    "b: [ One, Two, Three, Four ]",
-                    "One+Two+Three+Four",
-                    FlowA.class
+                "b: [ One, Two, Three, Four ]",
+                "One+Two+Three+Four",
+                FlowA.class
             );
         }
     }

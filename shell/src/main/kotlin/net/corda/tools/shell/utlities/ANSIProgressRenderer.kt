@@ -18,7 +18,8 @@ import org.fusesource.jansi.AnsiConsole
 import org.fusesource.jansi.AnsiOutputStream
 import rx.Observable.combineLatest
 import rx.Subscription
-import java.util.*
+import java.util.EmptyStackException
+import java.util.Stack
 
 abstract class ANSIProgressRenderer {
 
@@ -38,6 +39,7 @@ abstract class ANSIProgressRenderer {
 
     // prevMessagePrinted is just for non-ANSI mode.
     private var prevMessagePrinted: String? = null
+
     // prevLinesDraw is just for ANSI mode.
     protected var prevLinesDrawn = 0
 
@@ -55,9 +57,9 @@ abstract class ANSIProgressRenderer {
         renderInternal(flowProgressHandle)
     }
 
-    protected abstract fun printLine(line:String)
+    protected abstract fun printLine(line: String)
 
-    protected abstract fun printAnsi(ansi:Ansi)
+    protected abstract fun printAnsi(ansi: Ansi)
 
     protected abstract fun setup()
 
@@ -143,7 +145,8 @@ abstract class ANSIProgressRenderer {
         treeIndexProcessed = if (newIndices.isNotEmpty()) newIndices else mutableSetOf(0)
     }
 
-    @Synchronized protected fun draw(moveUp: Boolean, error: Throwable? = null) {
+    @Synchronized
+    protected fun draw(moveUp: Boolean, error: Throwable? = null) {
 
         if (!usingANSI) {
             val currentMessage = tree.getOrNull(treeIndex)?.description
@@ -254,10 +257,9 @@ abstract class ANSIProgressRenderer {
             a(Attribute.INTENSITY_BOLD_OFF)
         }
     }
-
 }
 
-class CRaSHANSIProgressRenderer(val renderPrintWriter:RenderPrintWriter) : ANSIProgressRenderer() {
+class CRaSHANSIProgressRenderer(val renderPrintWriter: RenderPrintWriter) : ANSIProgressRenderer() {
 
     override fun printLine(line: String) {
         renderPrintWriter.println(line)
@@ -272,8 +274,6 @@ class CRaSHANSIProgressRenderer(val renderPrintWriter:RenderPrintWriter) : ANSIP
         // We assume SSH always use ANSI.
         usingANSI = true
     }
-
-
 }
 
 /**
@@ -303,15 +303,17 @@ object StdoutANSIProgressRenderer : ANSIProgressRenderer() {
             // than doing things the official way with a dedicated plugin, etc, as it avoids mucking around with all
             // the config XML and lifecycle goop.
             val manager = LogManager.getContext(false) as LoggerContext
-            val consoleAppender = manager.configuration.appenders.values.filterIsInstance<ConsoleAppender>().singleOrNull { it.name == "Console-Selector" }
+            val consoleAppender =
+                manager.configuration.appenders.values.filterIsInstance<ConsoleAppender>().singleOrNull { it.name == "Console-Selector" }
             if (consoleAppender == null) {
                 loggerFor<StdoutANSIProgressRenderer>().warn("Cannot find console appender - progress tracking may not work as expected")
                 return
             }
             @Suppress("DEPRECATION")
             val scrollingAppender = object : AbstractOutputStreamAppender<OutputStreamManager>(
-                    consoleAppender.name, consoleAppender.layout, consoleAppender.filter,
-                    consoleAppender.ignoreExceptions(), true, consoleAppender.manager) {
+                consoleAppender.name, consoleAppender.layout, consoleAppender.filter,
+                consoleAppender.ignoreExceptions(), true, consoleAppender.manager
+            ) {
                 override fun append(event: LogEvent) {
                     // We lock on the renderer to avoid threads that are logging to the screen simultaneously messing
                     // things up. Of course this slows stuff down a bit, but only whilst this little utility is in use.
@@ -344,7 +346,7 @@ object StdoutANSIProgressRenderer : ANSIProgressRenderer() {
         }
     }
 
-    override fun printLine(line:String) {
+    override fun printLine(line: String) {
         System.out.println(line)
     }
 

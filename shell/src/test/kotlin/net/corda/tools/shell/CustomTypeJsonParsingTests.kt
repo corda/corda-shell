@@ -7,7 +7,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import net.corda.core.contracts.UniqueIdentifier
 import org.junit.Before
 import org.junit.Test
-import java.util.*
+import java.util.UUID
 import kotlin.test.assertEquals
 
 class CustomTypeJsonParsingTests {
@@ -31,8 +31,8 @@ class CustomTypeJsonParsingTests {
         objectMapper.registerModule(simpleModule)
     }
 
-    @Test(timeout=300_000)
-	fun `Deserializing UniqueIdentifier by parsing string`() {
+    @Test(timeout = 300_000)
+    fun `Deserializing UniqueIdentifier by parsing string`() {
         val id = "26b37265-a1fd-4c77-b2e0-715917ef619f"
         val json = """{"linearId":"$id"}"""
         val state = objectMapper.readValue<State>(json)
@@ -40,8 +40,8 @@ class CustomTypeJsonParsingTests {
         assertEquals(id, state.linearId.id.toString())
     }
 
-    @Test(timeout=300_000)
-	fun `Deserializing UniqueIdentifier by parsing string with underscore`() {
+    @Test(timeout = 300_000)
+    fun `Deserializing UniqueIdentifier by parsing string with underscore`() {
         val json = """{"linearId":"extkey564_26b37265-a1fd-4c77-b2e0-715917ef619f"}"""
         val state = objectMapper.readValue<State>(json)
 
@@ -49,21 +49,21 @@ class CustomTypeJsonParsingTests {
         assertEquals("26b37265-a1fd-4c77-b2e0-715917ef619f", state.linearId.id.toString())
     }
 
-    @Test(expected = JsonMappingException::class, timeout=300_000)
+    @Test(expected = JsonMappingException::class, timeout = 300_000)
     fun `Deserializing by parsing string contain invalid uuid with underscore`() {
         val json = """{"linearId":"extkey564_26b37265-a1fd-4c77-b2e0"}"""
         objectMapper.readValue<State>(json)
     }
 
-    @Test(timeout=300_000)
-	fun `Deserializing UUID by parsing string`() {
+    @Test(timeout = 300_000)
+    fun `Deserializing UUID by parsing string`() {
         val json = """{"uuid":"26b37265-a1fd-4c77-b2e0-715917ef619f"}"""
         val state = objectMapper.readValue<UuidState>(json)
 
         assertEquals("26b37265-a1fd-4c77-b2e0-715917ef619f", state.uuid.toString())
     }
 
-    @Test(expected = JsonMappingException::class, timeout=300_000)
+    @Test(expected = JsonMappingException::class, timeout = 300_000)
     fun `Deserializing UUID by parsing invalid uuid string`() {
         val json = """{"uuid":"26b37265-a1fd-4c77-b2e0"}"""
         objectMapper.readValue<UuidState>(json)

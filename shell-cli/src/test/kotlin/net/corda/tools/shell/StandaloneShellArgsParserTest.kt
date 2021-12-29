@@ -10,8 +10,8 @@ import kotlin.test.assertEquals
 class StandaloneShellArgsParserTest {
     private val CONFIG_FILE = StandaloneShellArgsParserTest::class.java.getResource("/config.conf").toPath()
 
-    @Test(timeout=300_000)
-	fun empty_args_to_cmd_options() {
+    @Test(timeout = 300_000)
+    fun empty_args_to_cmd_options() {
         val expectedOptions = ShellCmdLineOptions()
 
         assertEquals(expectedOptions.configFile, null)
@@ -23,8 +23,8 @@ class StandaloneShellArgsParserTest {
         assertEquals(expectedOptions.password, null)
     }
 
-    @Test(timeout=300_000)
-	fun args_to_config() {
+    @Test(timeout = 300_000)
+    fun args_to_config() {
         val options = ShellCmdLineOptions()
         options.configFile = null
         options.commandsDirectory = Paths.get("/x/y/commands")
@@ -38,26 +38,28 @@ class StandaloneShellArgsParserTest {
         options.trustStoreType = "dummy"
 
         val expectedSsl = ClientRpcSslOptions(
-                trustStorePath = Paths.get("/x/y/truststore.jks"),
-                trustStorePassword = "pass2")
+            trustStorePath = Paths.get("/x/y/truststore.jks"),
+            trustStorePassword = "pass2"
+        )
         val expectedConfig = ShellConfiguration(
-                commandsDirectory = Paths.get("/x/y/commands"),
-                cordappsDirectory = Paths.get("/x/y/cordapps"),
-                user = "demo",
-                password = "abcd1234",
-                hostAndPort = NetworkHostAndPort("alocalhost", 1234),
-                ssl = expectedSsl,
-                sshdPort = null,
-                sshHostKeyDirectory = null,
-                noLocalShell = false)
+            commandsDirectory = Paths.get("/x/y/commands"),
+            cordappsDirectory = Paths.get("/x/y/cordapps"),
+            user = "demo",
+            password = "abcd1234",
+            hostAndPort = NetworkHostAndPort("alocalhost", 1234),
+            ssl = expectedSsl,
+            sshdPort = null,
+            sshHostKeyDirectory = null,
+            noLocalShell = false
+        )
 
         val config = options.toConfig()
 
         assertEquals(expectedConfig, config)
     }
 
-    @Test(timeout=300_000)
-	fun cmd_options_to_config_from_file() {
+    @Test(timeout = 300_000)
+    fun cmd_options_to_config_from_file() {
         val options = ShellCmdLineOptions()
         options.configFile = CONFIG_FILE
         options.commandsDirectory = null
@@ -71,23 +73,25 @@ class StandaloneShellArgsParserTest {
         options.trustStoreType = null
 
         val expectedConfig = ShellConfiguration(
-                commandsDirectory = Paths.get("/x/y/commands"),
-                cordappsDirectory = Paths.get("/x/y/cordapps"),
-                user = "demo",
-                password = "abcd1234",
-                hostAndPort = NetworkHostAndPort("alocalhost", 1234),
-                ssl = ClientRpcSslOptions(
-                        trustStorePath = Paths.get("/x/y/truststore.jks"),
-                        trustStorePassword = "pass2"),
-                sshdPort = null)
+            commandsDirectory = Paths.get("/x/y/commands"),
+            cordappsDirectory = Paths.get("/x/y/cordapps"),
+            user = "demo",
+            password = "abcd1234",
+            hostAndPort = NetworkHostAndPort("alocalhost", 1234),
+            ssl = ClientRpcSslOptions(
+                trustStorePath = Paths.get("/x/y/truststore.jks"),
+                trustStorePassword = "pass2"
+            ),
+            sshdPort = null
+        )
 
         val config = options.toConfig()
 
         assertEquals(expectedConfig, config)
     }
 
-    @Test(timeout=300_000)
-	fun cmd_options_override_config_from_file() {
+    @Test(timeout = 300_000)
+    fun cmd_options_override_config_from_file() {
         val options = ShellCmdLineOptions()
         options.configFile = CONFIG_FILE
         options.commandsDirectory = null
@@ -100,16 +104,18 @@ class StandaloneShellArgsParserTest {
         options.trustStoreType = null
 
         val expectedSsl = ClientRpcSslOptions(
-                trustStorePath = Paths.get("/x/y/truststore.jks"),
-                trustStorePassword = "pass2")
+            trustStorePath = Paths.get("/x/y/truststore.jks"),
+            trustStorePassword = "pass2"
+        )
         val expectedConfig = ShellConfiguration(
-                commandsDirectory = Paths.get("/x/y/commands"),
-                cordappsDirectory = Paths.get("/x/y/cordapps"),
-                user = "demo",
-                password = "blabla",
-                hostAndPort = NetworkHostAndPort("alocalhost", 1234),
-                ssl = expectedSsl,
-                sshdPort = null)
+            commandsDirectory = Paths.get("/x/y/commands"),
+            cordappsDirectory = Paths.get("/x/y/cordapps"),
+            user = "demo",
+            password = "blabla",
+            hostAndPort = NetworkHostAndPort("alocalhost", 1234),
+            ssl = expectedSsl,
+            sshdPort = null
+        )
 
         val config = options.toConfig()
 

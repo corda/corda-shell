@@ -37,8 +37,8 @@ class HashLookupCommandTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `hash lookup command returns correct response`() {
+    @Test(timeout = 300_000)
+    fun `hash lookup command returns correct response`() {
         val ops = ops(DEFAULT_TXID)
         var response = runCommand(ops, DEFAULT_TXID.toString())
 
@@ -49,7 +49,7 @@ class HashLookupCommandTest {
         MatcherAssert.assertThat(response, StringContains.containsString("Found a matching transaction with Id: $DEFAULT_TXID"))
     }
 
-    @Test(timeout=300_000)
+    @Test(timeout = 300_000)
     fun `should reject invalid txid`() {
         val ops = ops(DEFAULT_TXID)
         assertFailsWith<IllegalArgumentException>("The provided string is not a valid hexadecimal SHA-256 hash value") {
@@ -57,7 +57,7 @@ class HashLookupCommandTest {
         }
     }
 
-    @Test(timeout=300_000)
+    @Test(timeout = 300_000)
     fun `should reject unknown txid`() {
         val ops = ops(DEFAULT_TXID)
         assertFailsWith<IllegalArgumentException>("No matching transaction found") {

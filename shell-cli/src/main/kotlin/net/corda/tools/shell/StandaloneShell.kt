@@ -31,13 +31,13 @@ class StandaloneShell : CordaCliWrapper("corda-shell", "The Corda standalone she
     lateinit var configuration: ShellConfiguration
 
     private fun getCordappsInDirectory(cordappsDir: Path?): List<URL> =
-            if (cordappsDir == null || !cordappsDir.exists()) {
-                emptyList()
-            } else {
-                cordappsDir.list {
-                    it.filter { it.isRegularFile() && it.toString().endsWith(".jar") }.map { it.toUri().toURL() }.toList()
-                }
+        if (cordappsDir == null || !cordappsDir.exists()) {
+            emptyList()
+        } else {
+            cordappsDir.list {
+                it.filter { it.isRegularFile() && it.toString().endsWith(".jar") }.map { it.toUri().toURL() }.toList()
             }
+        }
 
     //Workaround in case console is not available
     @Throws(IOException::class)
@@ -52,11 +52,11 @@ class StandaloneShell : CordaCliWrapper("corda-shell", "The Corda standalone she
 
     @Throws(IOException::class)
     private fun readPassword(format: String, vararg args: Any) =
-            if (System.console() != null) System.console().readPassword(format, *args) else this.readLine(format, *args).toCharArray()
+        if (System.console() != null) System.console().readPassword(format, *args) else this.readLine(format, *args).toCharArray()
 
     private fun getManifestEntry(key: String) = if (Manifests.exists(key)) Manifests.read(key) else "Unknown"
 
-    override fun initLogging() : Boolean {
+    override fun initLogging(): Boolean {
         super.initLogging()
         SLF4JBridgeHandler.removeHandlersForRootLogger() // The default j.u.l config adds a ConsoleHandler.
         SLF4JBridgeHandler.install()
@@ -66,7 +66,7 @@ class StandaloneShell : CordaCliWrapper("corda-shell", "The Corda standalone she
     override fun runProgram(): Int {
         configuration = try {
             cmdLineOptions.toConfig()
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             println("Configuration exception: ${e.message}")
             return ExitCodes.FAILURE
         }
@@ -83,8 +83,8 @@ class StandaloneShell : CordaCliWrapper("corda-shell", "The Corda standalone she
         }
         InteractiveShell.startShell(configuration, classLoader, true)
         try {
-             //connecting to node by requesting node info to fail fast
-              InteractiveShell.nodeInfo()
+            //connecting to node by requesting node info to fail fast
+            InteractiveShell.nodeInfo()
         } catch (e: Exception) {
             println("Cannot login to ${configuration.hostAndPort}, reason: \"${e.message}\"")
             return ExitCodes.FAILURE
@@ -92,16 +92,27 @@ class StandaloneShell : CordaCliWrapper("corda-shell", "The Corda standalone she
 
         val exit = CountDownLatch(1)
         AnsiConsole.systemInstall()
-        println(Ansi.ansi().fgBrightRed().a(
-                """   ______               __""").newline().a(
-                """  / ____/     _________/ /___ _""").newline().a(
-                """ / /     __  / ___/ __  / __ `/ """).newline().fgBrightRed().a(
-                """/ /___  /_/ / /  / /_/ / /_/ /""").newline().fgBrightRed().a(
-                """\____/     /_/   \__,_/\__,_/""").reset().fgBrightDefault().bold()
-                .newline().a("--- ${getManifestEntry("Corda-Vendor")} ${getManifestEntry("Corda-Release-Version")} (${getManifestEntry("Corda-Revision").take(7)}) ---")
+        println(
+            Ansi.ansi().fgBrightRed().a(
+                """   ______               __"""
+            ).newline().a(
+                """  / ____/     _________/ /___ _"""
+            ).newline().a(
+                """ / /     __  / ___/ __  / __ `/ """
+            ).newline().fgBrightRed().a(
+                """/ /___  /_/ / /  / /_/ / /_/ /"""
+            ).newline().fgBrightRed().a(
+                """\____/     /_/   \__,_/\__,_/"""
+            ).reset().fgBrightDefault().bold()
+                .newline().a(
+                    "--- ${getManifestEntry("Corda-Vendor")} ${getManifestEntry("Corda-Release-Version")} (${
+                        getManifestEntry("Corda-Revision").take(7)
+                    }) ---"
+                )
                 .newline()
                 .newline().a("Standalone Shell connected to ${configuration.hostAndPort}")
-                .reset())
+                .reset()
+        )
         InteractiveShell.runLocalShell {
             exit.countDown()
         }

@@ -1,6 +1,10 @@
 package net.corda.tools.shell.utilities
 
-import com.nhaarman.mockito_kotlin.*
+import com.nhaarman.mockito_kotlin.KArgumentCaptor
+import com.nhaarman.mockito_kotlin.argumentCaptor
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.times
+import com.nhaarman.mockito_kotlin.verify
 import net.corda.core.flows.StateMachineRunId
 import net.corda.core.internal.concurrent.openFuture
 import net.corda.core.messaging.DataFeed
@@ -63,7 +67,13 @@ class ANSIProgressRendererTest {
         feedSubject = PublishSubject.create<List<Pair<Int, String>>>()
         val stepsTreeIndexFeed = DataFeed<Int, Int>(0, indexSubject)
         val stepsTreeFeed = DataFeed<List<Pair<Int, String>>, List<Pair<Int, String>>>(listOf(), feedSubject)
-        flowProgressHandle = FlowProgressHandleImpl(StateMachineRunId.createRandom(), openFuture<String>(), Observable.empty(), stepsTreeIndexFeed, stepsTreeFeed)
+        flowProgressHandle = FlowProgressHandleImpl(
+            StateMachineRunId.createRandom(),
+            openFuture<String>(),
+            Observable.empty(),
+            stepsTreeIndexFeed,
+            stepsTreeFeed
+        )
     }
 
     private fun checkTrackingState(captor: KArgumentCaptor<Ansi>, updates: Int, trackerState: List<String>) {
@@ -72,8 +82,8 @@ class ANSIProgressRendererTest {
         verify(printWriter, times(updates)).flush()
     }
 
-    @Test(timeout=300_000)
-	fun `test that steps are rendered appropriately depending on their status`() {
+    @Test(timeout = 300_000)
+    fun `test that steps are rendered appropriately depending on their status`() {
         progressRenderer.render(flowProgressHandle)
         feedSubject.onNext(listOf(Pair(0, STEP_1_LABEL), Pair(0, STEP_2_LABEL), Pair(0, STEP_3_LABEL)))
         // The flow is currently at step 3, while step 1 has been completed and step 2 has been skipped.
@@ -84,10 +94,18 @@ class ANSIProgressRendererTest {
         checkTrackingState(captor, 2, listOf(stepSuccess(STEP_1_LABEL), stepSkipped(STEP_2_LABEL), stepActive(STEP_3_LABEL)))
     }
 
-    @Test(timeout=300_000)
-	fun `changing tree causes correct steps to be marked as done`() {
+    @Test(timeout = 300_000)
+    fun `changing tree causes correct steps to be marked as done`() {
         progressRenderer.render(flowProgressHandle)
-        feedSubject.onNext(listOf(Pair(0, STEP_1_LABEL), Pair(1, STEP_2_LABEL), Pair(1, STEP_3_LABEL), Pair(0, STEP_4_LABEL), Pair(0, STEP_5_LABEL)))
+        feedSubject.onNext(
+            listOf(
+                Pair(0, STEP_1_LABEL),
+                Pair(1, STEP_2_LABEL),
+                Pair(1, STEP_3_LABEL),
+                Pair(0, STEP_4_LABEL),
+                Pair(0, STEP_5_LABEL)
+            )
+        )
         indexSubject.onNext(0)
         indexSubject.onNext(1)
         indexSubject.onNext(2)
@@ -99,8 +117,8 @@ class ANSIProgressRendererTest {
         checkTrackingState(captor, 4, listOf(stepActive(STEP_1_LABEL), stepNotRun(STEP_4_LABEL), stepNotRun(STEP_5_LABEL)))
     }
 
-    @Test(timeout=300_000)
-	fun `duplicate steps in different children handled correctly`() {
+    @Test(timeout = 300_000)
+    fun `duplicate steps in different children handled correctly`() {
         val captor = argumentCaptor<Ansi>()
         progressRenderer.render(flowProgressHandle)
         feedSubject.onNext(listOf(Pair(0, STEP_1_LABEL), Pair(0, STEP_2_LABEL)))
@@ -113,10 +131,32 @@ class ANSIProgressRendererTest {
         indexSubject.onNext(2)
         indexSubject.onNext(3)
 
-        checkTrackingState(captor, 5, listOf(stepSuccess(STEP_1_LABEL), stepSuccess(STEP_3_LABEL), stepSuccess(STEP_2_LABEL), stepActive(STEP_3_LABEL)))
+        checkTrackingState(
+            captor,
+            5,
+            listOf(stepSuccess(STEP_1_LABEL), stepSuccess(STEP_3_LABEL), stepSuccess(STEP_2_LABEL), stepActive(STEP_3_LABEL))
+        )
 
-        feedSubject.onNext(listOf(Pair(0, STEP_1_LABEL), Pair(1, STEP_3_LABEL), Pair(0, STEP_2_LABEL), Pair(1, STEP_3_LABEL), Pair(2, STEP_4_LABEL)))
+        feedSubject.onNext(
+            listOf(
+                Pair(0, STEP_1_LABEL),
+                Pair(1, STEP_3_LABEL),
+                Pair(0, STEP_2_LABEL),
+                Pair(1, STEP_3_LABEL),
+                Pair(2, STEP_4_LABEL)
+            )
+        )
 
-        checkTrackingState(captor, 6, listOf(stepSuccess(STEP_1_LABEL), stepSuccess(STEP_3_LABEL), stepSuccess(STEP_2_LABEL), stepActive(STEP_3_LABEL), stepNotRun(STEP_4_LABEL)))
+        checkTrackingState(
+            captor,
+            6,
+            listOf(
+                stepSuccess(STEP_1_LABEL),
+                stepSuccess(STEP_3_LABEL),
+                stepSuccess(STEP_2_LABEL),
+                stepActive(STEP_3_LABEL),
+                stepNotRun(STEP_4_LABEL)
+            )
+        )
     }
 }

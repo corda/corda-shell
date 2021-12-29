@@ -15,7 +15,9 @@ import rx.Observable
 import java.io.BufferedInputStream
 import java.io.InputStream
 import java.nio.file.Paths
-import java.util.*
+import java.util.Collections
+import java.util.HashSet
+import java.util.UUID
 
 //region Extra serializers
 //

@@ -47,7 +47,8 @@ public class OutputFormatCommandTest {
 
     @Test
     public void testInvalidUpdate() {
-        assertThatExceptionOfType(ScriptException.class).isThrownBy(() -> outputFormatCommand.set(mockInvocationContext, "some-invalid-format"))
-                .withMessage("The provided format is not supported: some-invalid-format");
+        assertThatExceptionOfType(ScriptException.class)
+            .isThrownBy(() -> outputFormatCommand.set(mockInvocationContext, "some-invalid-format"))
+            .withMessage("The provided format is not supported: some-invalid-format");
     }
 }

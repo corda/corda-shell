@@ -11,9 +11,22 @@ import com.nhaarman.mockito_kotlin.mock
 import net.corda.client.jackson.JacksonSupport
 import net.corda.client.jackson.internal.valueAs
 import net.corda.client.rpc.RPCException
-import net.corda.core.contracts.*
+import net.corda.core.contracts.BelongsToContract
+import net.corda.core.contracts.CommandData
+import net.corda.core.contracts.Contract
+import net.corda.core.contracts.LinearState
+import net.corda.core.contracts.StateRef
+import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.crypto.SecureHash
-import net.corda.core.flows.*
+import net.corda.core.flows.CollectSignaturesFlow
+import net.corda.core.flows.FlowExternalAsyncOperation
+import net.corda.core.flows.FlowExternalOperation
+import net.corda.core.flows.FlowLogic
+import net.corda.core.flows.FlowSession
+import net.corda.core.flows.InitiatedBy
+import net.corda.core.flows.InitiatingFlow
+import net.corda.core.flows.SignTransactionFlow
+import net.corda.core.flows.StartableByRPC
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import net.corda.core.internal.concurrent.transpose
@@ -65,7 +78,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.rules.TemporaryFolder
-import java.util.*
+import java.util.ArrayList
+import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeoutException
@@ -89,8 +103,8 @@ class InteractiveShellIntegrationTest {
         inputObjectMapper = objectMapperWithClassLoader(InteractiveShell.getCordappsClassloader())
     }
 
-    @Test(timeout=300_000)
-	fun `shell should not log in with invalid credentials`() {
+    @Test(timeout = 300_000)
+    fun `shell should not log in with invalid credentials`() {
         val user = User("u", "p", setOf())
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), cordappsForAllNodes = emptyList())) {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
@@ -99,8 +113,8 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `shell should log in with valid credentials`() {
+    @Test(timeout = 300_000)
+    fun `shell should log in with valid credentials`() {
         val user = User("u", "p", setOf())
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), cordappsForAllNodes = emptyList())) {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
@@ -109,8 +123,8 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `shell should log in with ssl`() {
+    @Test(timeout = 300_000)
+    fun `shell should log in with ssl`() {
         val user = User("mark", "dadada", setOf(all()))
 
         val (keyPair, cert) = createKeyPairAndSelfSignedTLSCertificate(testName)
@@ -127,8 +141,8 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `shell shoud not log in with invalid truststore`() {
+    @Test(timeout = 300_000)
+    fun `shell shoud not log in with invalid truststore`() {
         val user = User("mark", "dadada", setOf("ALL"))
         val (keyPair, cert) = createKeyPairAndSelfSignedTLSCertificate(testName)
         val keyStorePath = saveToKeyStore(tempFolder.root.toPath() / "keystore.jks", keyPair, cert)
@@ -145,8 +159,8 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `internal shell user should not be able to connect if node started with devMode=false`() {
+    @Test(timeout = 300_000)
+    fun `internal shell user should not be able to connect if node started with devMode=false`() {
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), cordappsForAllNodes = emptyList())) {
             val node = startNode().getOrThrow()
             val conf = (node as NodeHandleInternal).configuration.toShellConfigMap()
@@ -156,13 +170,15 @@ class InteractiveShellIntegrationTest {
     }
 
     @Ignore
-    @Test(timeout=300_000)
-	fun `ssh runs flows via standalone shell`() {
-        val user = User("u", "p", setOf(
+    @Test(timeout = 300_000)
+    fun `ssh runs flows via standalone shell`() {
+        val user = User(
+            "u", "p", setOf(
                 startFlow<FlowICanRun>(),
                 Permissions.invokeRpc(CordaRPCOps::registeredFlows),
                 Permissions.invokeRpc(CordaRPCOps::nodeInfo)
-        ))
+            )
+        )
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), cordappsForAllNodes = listOf(enclosedCordapp()))) {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
             startShell(node, sshdPort = 2224)
@@ -194,13 +210,15 @@ class InteractiveShellIntegrationTest {
     }
 
     @Ignore
-    @Test(timeout=300_000)
-	fun `ssh run flows via standalone shell over ssl to node`() {
-        val user = User("mark", "dadada", setOf(
+    @Test(timeout = 300_000)
+    fun `ssh run flows via standalone shell over ssl to node`() {
+        val user = User(
+            "mark", "dadada", setOf(
                 startFlow<FlowICanRun>(),
                 Permissions.invokeRpc(CordaRPCOps::registeredFlows),
                 Permissions.invokeRpc(CordaRPCOps::nodeInfo)/*all()*/
-        ))
+            )
+        )
 
         val (keyPair, cert) = createKeyPairAndSelfSignedTLSCertificate(testName)
         val keyStorePath = saveToKeyStore(tempFolder.root.toPath() / "keystore.jks", keyPair, cert)
@@ -244,8 +262,8 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `shell should start flow with fully qualified class name`() {
+    @Test(timeout = 300_000)
+    fun `shell should start flow with fully qualified class name`() {
         val user = User("u", "p", setOf(all()))
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), cordappsForAllNodes = listOf(enclosedCordapp()))) {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
@@ -256,8 +274,8 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `shell should start flow with unique un-qualified class name`() {
+    @Test(timeout = 300_000)
+    fun `shell should start flow with unique un-qualified class name`() {
         val user = User("u", "p", setOf(all()))
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), cordappsForAllNodes = listOf(enclosedCordapp()))) {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
@@ -268,8 +286,8 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `shell should fail to start flow with ambiguous class name`() {
+    @Test(timeout = 300_000)
+    fun `shell should fail to start flow with ambiguous class name`() {
         val user = User("u", "p", setOf(all()))
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), cordappsForAllNodes = listOf(enclosedCordapp()))) {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
@@ -280,8 +298,8 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `shell should start flow with partially matching class name`() {
+    @Test(timeout = 300_000)
+    fun `shell should start flow with partially matching class name`() {
         val user = User("u", "p", setOf(all()))
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), cordappsForAllNodes = listOf(enclosedCordapp()))) {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
@@ -292,8 +310,8 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `dumpCheckpoints correctly serializes FlowExternalOperations`() {
+    @Test(timeout = 300_000)
+    fun `dumpCheckpoints correctly serializes FlowExternalOperations`() {
         driver(DriverParameters(notarySpecs = emptyList(), startNodesInProcess = true)) {
             val alice = startNode(providedName = ALICE_NAME).getOrThrow()
             (alice.baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME).createDirectories()
@@ -315,8 +333,8 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `dumpCheckpoints correctly serializes FlowExternalAsyncOperations`() {
+    @Test(timeout = 300_000)
+    fun `dumpCheckpoints correctly serializes FlowExternalAsyncOperations`() {
         driver(DriverParameters(notarySpecs = emptyList(), startNodesInProcess = true)) {
             val alice = startNode(providedName = ALICE_NAME).getOrThrow()
             (alice.baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME).createDirectories()
@@ -337,8 +355,8 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `dumpCheckpoints correctly serializes WaitForStateConsumption`() {
+    @Test(timeout = 300_000)
+    fun `dumpCheckpoints correctly serializes WaitForStateConsumption`() {
         driver(DriverParameters(notarySpecs = emptyList(), startNodesInProcess = true)) {
             val alice = startNode(providedName = ALICE_NAME).getOrThrow()
             (alice.baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME).createDirectories()
@@ -361,14 +379,14 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Test(timeout=300_000)
-	fun `dumpCheckpoints creates zip with json file for suspended flow`() {
+    @Test(timeout = 300_000)
+    fun `dumpCheckpoints creates zip with json file for suspended flow`() {
         val user = User("u", "p", setOf(all()))
         driver(DriverParameters(startNodesInProcess = true, cordappsForAllNodes = listOf(enclosedCordapp()))) {
             val (aliceNode, bobNode) = listOf(ALICE_NAME, BOB_NAME)
-                    .map { startNode(providedName = it, rpcUsers = listOf(user)) }
-                    .transpose()
-                    .getOrThrow()
+                .map { startNode(providedName = it, rpcUsers = listOf(user)) }
+                .transpose()
+                .getOrThrow()
             bobNode.stop()
 
             // Create logs directory since the driver is not creating it
@@ -378,13 +396,13 @@ class InteractiveShellIntegrationTest {
 
             val linearId = UniqueIdentifier(id = UUID.fromString("7c0719f0-e489-46e8-bf3b-ee203156fc7c"))
             aliceNode.rpc.startFlow(
-                    ::FlowForCheckpointDumping,
-                    MyState(
-                            "some random string",
-                            linearId,
-                            listOf(aliceNode.nodeInfo.singleIdentity(), bobNode.nodeInfo.singleIdentity())
-                    ),
-                    bobNode.nodeInfo.singleIdentity()
+                ::FlowForCheckpointDumping,
+                MyState(
+                    "some random string",
+                    linearId,
+                    listOf(aliceNode.nodeInfo.singleIdentity(), bobNode.nodeInfo.singleIdentity())
+                ),
+                bobNode.nodeInfo.singleIdentity()
             )
 
             Thread.sleep(5000)
@@ -414,14 +432,20 @@ class InteractiveShellIntegrationTest {
         startShell(user.username, user.password, node.rpcAddress, ssl, sshdPort)
     }
 
-    private fun startShell(user: String, password: String, address: NetworkHostAndPort, ssl: ClientRpcSslOptions? = null, sshdPort: Int? = null) {
+    private fun startShell(
+        user: String,
+        password: String,
+        address: NetworkHostAndPort,
+        ssl: ClientRpcSslOptions? = null,
+        sshdPort: Int? = null
+    ) {
         val conf = ShellConfiguration(
-                commandsDirectory = tempFolder.newFolder().toPath(),
-                user = user,
-                password = password,
-                hostAndPort = address,
-                ssl = ssl,
-                sshdPort = sshdPort
+            commandsDirectory = tempFolder.newFolder().toPath(),
+            user = user,
+            password = password,
+            hostAndPort = address,
+            ssl = ssl,
+            sshdPort = sshdPort
         )
         InteractiveShell.startShell(conf)
     }
@@ -481,7 +505,7 @@ class InteractiveShellIntegrationTest {
 
     @InitiatingFlow
     @StartableByRPC
-    class FlowForCheckpointDumping(private val myState: MyState, private val party: Party): FlowLogic<Unit>() {
+    class FlowForCheckpointDumping(private val myState: MyState, private val party: Party) : FlowLogic<Unit>() {
         // Make sure any SerializeAsToken instances are not serialised
         private var services: ServiceHub? = null
 
@@ -500,11 +524,10 @@ class InteractiveShellIntegrationTest {
     }
 
     @InitiatedBy(FlowForCheckpointDumping::class)
-    class FlowForCheckpointDumpingResponder(private val session: FlowSession): FlowLogic<Unit>() {
+    class FlowForCheckpointDumpingResponder(private val session: FlowSession) : FlowLogic<Unit>() {
         override fun call() {
             val signTxFlow = object : SignTransactionFlow(session) {
                 override fun checkTransaction(stx: SignedTransaction) {
-
                 }
             }
             subFlow(signTxFlow)
@@ -514,14 +537,15 @@ class InteractiveShellIntegrationTest {
 
     class MyContract : Contract {
         class Create : CommandData
+
         override fun verify(tx: LedgerTransaction) {}
     }
 
     @BelongsToContract(MyContract::class)
     data class MyState(
-            val data: String,
-            override val linearId: UniqueIdentifier,
-            override val participants: List<AbstractParty>
+        val data: String,
+        override val linearId: UniqueIdentifier,
+        override val participants: List<AbstractParty>
     ) : LinearState
 
     @StartableByRPC
@@ -532,7 +556,7 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    class ExternalAsyncOperation(val a: String, val b: Int, val c: Data): FlowExternalAsyncOperation<Unit> {
+    class ExternalAsyncOperation(val a: String, val b: Int, val c: Data) : FlowExternalAsyncOperation<Unit> {
 
         companion object {
             val future = CompletableFuture<Unit>()
@@ -554,7 +578,7 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    class ExternalOperation(val a: String, val b: Int, val c: Data): FlowExternalOperation<Unit> {
+    class ExternalOperation(val a: String, val b: Int, val c: Data) : FlowExternalOperation<Unit> {
 
         companion object {
             val lock = Semaphore(0)

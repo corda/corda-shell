@@ -7,7 +7,8 @@ import org.crsh.auth.AuthInfo
 import org.crsh.auth.AuthenticationPlugin
 import org.crsh.plugin.CRaSHPlugin
 
-internal class CordaAuthenticationPlugin(private val rpcOpsProducer: RPCOpsProducer) : CRaSHPlugin<AuthenticationPlugin<String>>(), AuthenticationPlugin<String> {
+internal class CordaAuthenticationPlugin(private val rpcOpsProducer: RPCOpsProducer) : CRaSHPlugin<AuthenticationPlugin<String>>(),
+    AuthenticationPlugin<String> {
 
     companion object {
         private val logger = loggerFor<CordaAuthenticationPlugin>()

@@ -30,8 +30,8 @@ data class ShellConfiguration(
     }
 
     constructor(map: Map<String, Any?>) : this(
-        commandsDirectory= map.getAndCast<Path>("commandsDirectory")!!,
-        cordappsDirectory= map.getAndCast<Path>("cordappsDirectory"),
+        commandsDirectory = map.getAndCast<Path>("commandsDirectory")!!,
+        cordappsDirectory = map.getAndCast<Path>("cordappsDirectory"),
         user = map.getAndCast<String>("user") ?: "",
         password = map.getAndCast<String>("password") ?: "",
         permissions = map.getAndCast<Set<String>>("permissions"),
