@@ -36,7 +36,7 @@ import net.corda.node.internal.NodeStartup
 import net.corda.node.services.Permissions
 import net.corda.node.services.Permissions.Companion.all
 import net.corda.node.services.Permissions.Companion.startFlow
-import net.corda.node.services.config.shell.toShellConfig
+import net.corda.node.services.config.shell.toShellConfigMap
 import net.corda.node.utilities.createKeyPairAndSelfSignedTLSCertificate
 import net.corda.node.utilities.saveToKeyStore
 import net.corda.node.utilities.saveToTrustStore
@@ -149,7 +149,7 @@ class InteractiveShellIntegrationTest {
 	fun `internal shell user should not be able to connect if node started with devMode=false`() {
         driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), cordappsForAllNodes = emptyList())) {
             val node = startNode().getOrThrow()
-            val conf = (node as NodeHandleInternal).configuration.toShellConfig()
+            val conf = (node as NodeHandleInternal).configuration.toShellConfigMap()
             InteractiveShell.startShell(conf)
             assertThatThrownBy { InteractiveShell.nodeInfo() }.isInstanceOf(ActiveMQSecurityException::class.java)
         }

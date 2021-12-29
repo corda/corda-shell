@@ -85,6 +85,7 @@ object InteractiveShell {
     private lateinit var startupValidation: Lazy<CordaRPCOps>
     private var rpcConn: RPCConnection<CordaRPCOps>? = null
     private var shell: Shell? = null
+    private var lifecycle: PluginLifeCycle? = null
     private var classLoader: ClassLoader? = null
     private lateinit var shellConfiguration: ShellConfiguration
     private var onExit: () -> Unit = {}
@@ -201,6 +202,10 @@ object InteractiveShell {
         }
     }
 
+    fun stop() {
+        lifecycle?.stop()
+    }
+
     class ShellLifecycle(private val shellCommands: Path, private val shellSafety: ShellSafety) : PluginLifeCycle() {
         fun start(config: Properties, localUserName: String = "", localUserPassword: String = ""): Shell {
             val classLoader = this.javaClass.classLoader
@@ -242,7 +247,9 @@ object InteractiveShell {
             }
             // For local shell create an artificial authInfo with super user permissions
             val authInfo = CordaSSHAuthInfo(rpcOpsProducer, localUserName, localUserPassword, StdoutANSIProgressRenderer)
-            return context.getPlugin(ShellFactory::class.java).create(null, authInfo, shellSafety)
+            return context.getPlugin(ShellFactory::class.java).create(null, authInfo, shellSafety).also {
+                lifecycle = this
+            }
         }
     }
 
