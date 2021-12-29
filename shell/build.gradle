@@ -67,6 +67,7 @@ dependencies {
     // Unit testing helpers.
     testCompile "org.assertj:assertj-core:$assertJVersion"
 //    testCompile project(':test-utils')
+    testCompile "$cordaReleaseGroup:corda-test-utils:$cordaReleaseVersion"
 //    testCompile project(':finance:contracts')
 //    testCompile project(':finance:workflows')
 
@@ -76,6 +77,9 @@ dependencies {
     integrationTestCompile "$cordaReleaseGroup:corda-node-driver:$cordaReleaseVersion"
     integrationTestCompile "$cordaReleaseGroup:corda-test-utils:$cordaReleaseVersion"
 //    integrationTestCompile project(':node-driver')
+
+    testCompile "com.nhaarman:mockito-kotlin:$mockitoKotlinVersion"
+    testCompile "org.mockito:mockito-core:$mockitoVersion"
 }
 
 tasks.withType(JavaCompile).configureEach {
