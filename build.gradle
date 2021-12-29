@@ -1,9 +1,6 @@
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
 buildscript {
-//    ext {
-//        kotlinVersion = "kotlinVersion"
-//    }
     repositories {
         mavenLocal()
         // Use system environment to activate caching with Artifactory,
@@ -67,7 +64,7 @@ buildscript {
 
 plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
-//    id 'com.jfrog.artifactory'
+    id 'maven-publish'
 }
 
 apply plugin: 'com.jfrog.artifactory'
@@ -142,11 +139,15 @@ allprojects {
 }
 
 dependencies {
-//    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
 }
 
 allprojects {
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-Xlint:-options" << "-parameters"
+        options.compilerArgs << '-XDenableSunApiLintControl'
+        options.encoding = 'UTF-8'
+    }
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
         kotlinOptions {
             languageVersion = "1.2"
