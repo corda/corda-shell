@@ -54,14 +54,30 @@ buildscript {
 plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
 //    id 'com.jfrog.artifactory'
+    id 'maven-publish'
 }
 
 apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'net.corda.plugins.publish-utils'
+
+if (System.getenv("RELEASE_VERSION")?.trim()) {
+    version = System.getenv("RELEASE_VERSION")
+} else {
+    def versionSuffix = '-SNAPSHOT'
+    if(project.hasProperty('overridePublishVersionSuffix')) {
+        versionSuffix = project.property('overridePublishVersionSuffix')
+    } else if (System.getenv('VERSION_SUFFIX')) {
+        versionSuffix = System.getenv('VERSION_SUFFIX')
+    }
+    version = "$cordaReleaseVersion$versionSuffix"
+}
+
+logger.quiet("Corda release version: {}", version)
 
 allprojects {
 
     group 'net.corda'
-    version cordaReleaseVersion
+    version rootProject.version
 
     repositories {
         mavenLocal()
@@ -156,5 +172,31 @@ artifactory {
                 publications(project.extensions.publish.name())
             }
         }
+    }
+}
+
+bintrayConfig {
+    user = System.getenv('CORDA_BINTRAY_USER') ?: System.getProperty('corda.bintray.user')
+    key = System.getenv('CORDA_BINTRAY_KEY') ?: System.getProperty('corda.bintray.key')
+    repo = 'corda'
+    org = 'r3'
+    licenses = ['Apache-2.0']
+    vcsUrl = 'https://github.com/corda/corda-shell'
+    projectUrl = 'https://github.com/corda/corda-shell'
+    gpgSign = true
+    gpgPassphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
+    publications = [
+        'corda-shell',
+        'corda-tools-shell-cli',
+    ]
+    license {
+        name = 'Apache-2.0'
+        url = 'https://www.apache.org/licenses/LICENSE-2.0'
+        distribution = 'repo'
+    }
+    developer {
+        id = 'R3'
+        name = 'R3'
+        email = 'dev@corda.net'
     }
 }
