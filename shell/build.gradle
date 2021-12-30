@@ -37,6 +37,8 @@ dependencies {
     compile "$cordaReleaseGroup:corda-jackson:$cordaReleaseVersion"
 //    compile project(':client:jackson')
 
+    compile "$cordaReleaseGroup:corda-rpc-ext:$cordaReleaseVersion"
+
     // CRaSH: An embeddable monitoring and admin shell with support for adding new commands written in Groovy.
     compile("org.crashub:crash.shell:$crashVersion") {
         exclude group: "org.slf4j", module: "slf4j-jdk14"

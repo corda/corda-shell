@@ -42,6 +42,20 @@ buildscript {
             mavenCentral()
             jcenter()
         }
+        maven {
+            url "${artifactoryContextUrl}/r3-corda-dev"
+            credentials {
+                username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+            }
+        }
+        maven {
+            url "${artifactoryContextUrl}/r3-corda-releases"
+            credentials {
+                username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+            }
+        }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
@@ -107,6 +121,20 @@ allprojects {
             }
             maven { url 'https://software.r3.com/artifactory/corda-releases' }
             maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
+            maven {
+                url "${artifactoryContextUrl}/r3-corda-dev"
+                credentials {
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
+            maven {
+                url "${artifactoryContextUrl}/r3-corda-releases"
+                credentials {
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
             mavenCentral()
             jcenter()
         }
