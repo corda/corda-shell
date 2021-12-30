@@ -1,0 +1,95 @@
+apply plugin: 'kotlin'
+apply plugin: 'java'
+apply plugin: 'net.corda.plugins.quasar-utils'
+apply plugin: 'net.corda.plugins.publish-utils'
+apply plugin: 'com.jfrog.artifactory'
+
+description 'Corda Shell'
+
+configurations {
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+sourceSets {
+    integrationTest {
+        kotlin {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/kotlin')
+        }
+        resources {
+            srcDir file('src/integration-test/resources')
+        }
+    }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
+
+    compile "$cordaReleaseGroup:corda-node-api:$cordaReleaseVersion"
+    compile "$cordaReleaseGroup:corda-rpc:$cordaReleaseVersion"
+//    compile project(':node-api')
+//    compile project(':client:rpc')
+
+    // Jackson support: serialisation to/from JSON, YAML, etc.
+    compile "$cordaReleaseGroup:corda-jackson:$cordaReleaseVersion"
+//    compile project(':client:jackson')
+
+    // CRaSH: An embeddable monitoring and admin shell with support for adding new commands written in Groovy.
+    compile("org.crashub:crash.shell:$crashVersion") {
+        exclude group: "org.slf4j", module: "slf4j-jdk14"
+        exclude group: "org.bouncycastle"
+    }
+
+    compile("org.crashub:crash.connectors.ssh:$crashVersion") {
+        exclude group: "org.slf4j", module: "slf4j-jdk14"
+        exclude group: "org.bouncycastle"
+    }
+
+    // JAnsi: for drawing things to the terminal in nicely coloured ways.
+    compile "org.fusesource.jansi:jansi:$jansiVersion"
+
+    // Manifests: for reading stuff from the manifest file.
+    compile "com.jcabi:jcabi-manifests:1.1"
+
+    // For logging, required for ANSIProgressRenderer.
+    compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
+
+    testImplementation "junit:junit:$junitVersion"
+
+    testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junitVintageVersion"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:$junitPlatformVersion"
+
+    // Unit testing helpers.
+    testCompile "org.assertj:assertj-core:$assertJVersion"
+//    testCompile project(':test-utils')
+//    testCompile project(':finance:contracts')
+//    testCompile project(':finance:workflows')
+
+    // Jsh: Testing SSH server.
+    integrationTestCompile "com.jcraft:jsch:$jschVersion"
+
+    integrationTestCompile "$cordaReleaseGroup:corda-node-driver:$cordaReleaseVersion"
+    integrationTestCompile "$cordaReleaseGroup:corda-test-utils:$cordaReleaseVersion"
+//    integrationTestCompile project(':node-driver')
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // Resolves a Gradle warning about not scanning for pre-processors.
+    options.compilerArgs << '-proc:none'
+}
+
+task integrationTest(type: Test) {
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+}
+
+jar {
+    baseName 'corda-shell'
+}
+
+publish {
+    name jar.baseName
+}
