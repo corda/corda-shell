@@ -165,7 +165,11 @@ artifactory {
     publish {
         contextUrl = artifactoryContextUrl
         repository {
-            repoKey = 'corda-dev'
+            if (System.getProperty('publishApiDocs') != null) {
+                repoKey = 'corda-dependencies-dev'
+            } else {
+                repoKey = 'r3-corda-dev'
+            }
             username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
             password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
         }
