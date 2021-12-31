@@ -1,3 +1,8 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.4' apply false
+}
+
+
 apply plugin: 'kotlin'
 apply plugin: 'java'
 apply plugin: 'net.corda.plugins.quasar-utils'
@@ -97,6 +102,7 @@ task integrationTest(type: Test) {
 }
 
 jar {
+    enabled = false
     baseName 'corda-shell'
 }
 
