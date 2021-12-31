@@ -78,7 +78,7 @@ dependencies {
 
     integrationTestCompile "$cordaReleaseGroup:corda-node-driver:$cordaReleaseVersion"
     integrationTestCompile "$cordaReleaseGroup:corda-test-utils:$cordaReleaseVersion"
-//    integrationTestCompile project(':node-driver')
+    integrationTestCompile project(':test-cordapps:failing-flows:workflows')
 
     testCompile "com.nhaarman:mockito-kotlin:$mockitoKotlinVersion"
     testCompile "org.mockito:mockito-core:$mockitoVersion"
