@@ -37,6 +37,8 @@ dependencies {
     compile "$cordaReleaseGroup:corda-jackson:$cordaReleaseVersion"
 //    compile project(':client:jackson')
 
+    compile "$cordaReleaseGroup:corda-extensions-api:$cordaReleaseVersion"
+    testCompile "$cordaReleaseGroup:corda-extensions-node:$cordaReleaseVersion"
     compile "$cordaReleaseGroup:corda-rpc-ext:$cordaReleaseVersion"
 
     // CRaSH: An embeddable monitoring and admin shell with support for adding new commands written in Groovy.
