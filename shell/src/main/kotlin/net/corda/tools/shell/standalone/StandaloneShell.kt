@@ -27,6 +27,17 @@ fun main(args: Array<String>) {
 }
 
 class StandaloneShell : CordaCliWrapper("corda-shell", "The Corda standalone shell.") {
+
+    private companion object {
+        val logo = """
+R   ______               __
+R  / ____/     _________/ /___ _
+R / /     __  / ___/ __  / __ `/
+R/ /___  /_/ / /  / /_/ / /_/ /
+R\____/     /_/   \__,_/\__,_/
+D""".trimStart()
+    }
+
     @Mixin
     var cmdLineOptions = ShellCmdLineOptions()
 
@@ -94,27 +105,9 @@ class StandaloneShell : CordaCliWrapper("corda-shell", "The Corda standalone she
 
         val exit = CountDownLatch(1)
         AnsiConsole.systemInstall()
-        println(
-            Ansi.ansi().fgBrightRed().a(
-                """   ______               __"""
-            ).newline().a(
-                """  / ____/     _________/ /___ _"""
-            ).newline().a(
-                """ / /     __  / ___/ __  / __ `/ """
-            ).newline().fgBrightRed().a(
-                """/ /___  /_/ / /  / /_/ / /_/ /"""
-            ).newline().fgBrightRed().a(
-                """\____/     /_/   \__,_/\__,_/"""
-            ).reset().fgBrightDefault().bold()
-                .newline().a(
-                    "--- ${getManifestEntry("Corda-Vendor")} ${getManifestEntry("Corda-Release-Version")} (${
-                        getManifestEntry("Corda-Revision").take(7)
-                    }) ---"
-                )
-                .newline()
-                .newline().a("Standalone Shell connected to ${configuration.hostAndPort}")
-                .reset()
-        )
+
+        drawLogo()
+
         InteractiveShell.runLocalShell {
             exit.countDown()
         }
@@ -122,5 +115,27 @@ class StandaloneShell : CordaCliWrapper("corda-shell", "The Corda standalone she
         exit.await()
         // because we can't clean certain Crash Shell threads that block on read()
         return ExitCodes.SUCCESS
+    }
+
+    private fun drawLogo() {
+        val colourLogo = addColours(logo)
+        val banner = colourLogo +
+                System.lineSeparator() +
+                Ansi.ansi().fgBrightDefault().bold().a(generateVersionString()).reset() +
+                System.lineSeparator() +
+                Ansi.ansi().a("Standalone Shell connected to ${configuration.hostAndPort}")
+        println(banner)
+    }
+
+    private fun addColours(logo: String): String {
+        val red = Ansi.ansi().fgBrightRed().toString()
+        val default = Ansi.ansi().reset().toString()
+        return logo.replace("R", red).replace("D", default)
+    }
+
+    private fun generateVersionString(): String {
+        val versionString = "--- ${getManifestEntry("Corda-Vendor")} " +
+                "${getManifestEntry("Corda-Release-Version")} ---"
+        return versionString + System.lineSeparator()
     }
 }
