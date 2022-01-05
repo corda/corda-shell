@@ -3,7 +3,6 @@ package net.corda.tools.shell.standalone
 import net.corda.core.internal.toPath
 import net.corda.core.messaging.ClientRpcSslOptions
 import net.corda.core.utilities.NetworkHostAndPort
-import net.corda.tools.shell.ShellCmdLineOptions
 import net.corda.tools.shell.ShellConfiguration
 import org.junit.Test
 import java.nio.file.Paths

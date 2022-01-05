@@ -6,7 +6,7 @@ import org.junit.Test
 /**
  * Duplicate of [net.corda.testing.CliBackwardsCompatibleTest] in Corda repository.
  */
-open class CliBackwardsCompatibleTest(val clazz: Class<*>) {
+abstract class CliBackwardsCompatibleTest(val clazz: Class<*>) {
 
     @Test(timeout=300_000)
 	fun `should always be backwards compatible`() {

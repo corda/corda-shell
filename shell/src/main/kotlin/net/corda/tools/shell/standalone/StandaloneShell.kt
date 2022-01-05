@@ -8,7 +8,6 @@ import net.corda.core.internal.exists
 import net.corda.core.internal.isRegularFile
 import net.corda.core.internal.list
 import net.corda.tools.shell.InteractiveShell
-import net.corda.tools.shell.ShellCmdLineOptions
 import net.corda.tools.shell.ShellConfiguration
 import org.fusesource.jansi.Ansi
 import org.fusesource.jansi.AnsiConsole
