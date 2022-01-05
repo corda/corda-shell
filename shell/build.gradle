@@ -4,11 +4,15 @@ plugins {
 
 apply plugin: 'kotlin'
 apply plugin: 'java'
+apply plugin: 'application'
 apply plugin: 'net.corda.plugins.quasar-utils'
 apply plugin: 'net.corda.plugins.publish-utils'
 apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'maven-publish'
+
+// We need to set mainClassName before applying the shadow plugin.
+mainClassName = 'net.corda.tools.shell.standalone.StandaloneShellKt'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 description 'Corda Shell'
 
@@ -36,12 +40,11 @@ dependencies {
 
     compile "$cordaReleaseGroup:corda-node-api:$cordaReleaseVersion"
     compile "$cordaReleaseGroup:corda-rpc:$cordaReleaseVersion"
-//    compile project(':node-api')
-//    compile project(':client:rpc')
+    compile "$cordaReleaseGroup:corda-tools-cliutils:$cordaReleaseVersion"
+    compile "$cordaReleaseGroup:corda-common-logging:$cordaReleaseVersion"
 
     // Jackson support: serialisation to/from JSON, YAML, etc.
     compile "$cordaReleaseGroup:corda-jackson:$cordaReleaseVersion"
-//    compile project(':client:jackson')
 
     // CRaSH: An embeddable monitoring and admin shell with support for adding new commands written in Groovy.
     compile("org.crashub:crash.shell:$crashVersion") {
@@ -62,6 +65,7 @@ dependencies {
 
     // For logging, required for ANSIProgressRenderer.
     compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
+    compile "org.slf4j:jul-to-slf4j:$slf4jVersion"
 
     testImplementation "junit:junit:$junitVersion"
 
@@ -70,16 +74,12 @@ dependencies {
 
     // Unit testing helpers.
     testCompile "org.assertj:assertj-core:$assertJVersion"
-//    testCompile project(':test-utils')
     testCompile "$cordaReleaseGroup:corda-test-utils:$cordaReleaseVersion"
-//    testCompile project(':finance:contracts')
-//    testCompile project(':finance:workflows')
 
     // Jsh: Testing SSH server.
     integrationTestCompile "com.jcraft:jsch:$jschVersion"
 
     integrationTestCompile "$cordaReleaseGroup:corda-node-driver:$cordaReleaseVersion"
-//    integrationTestCompile project(':node-driver')
 
     testCompile "com.nhaarman:mockito-kotlin:$mockitoKotlinVersion"
     testCompile "org.mockito:mockito-core:$mockitoVersion"
@@ -103,6 +103,10 @@ jar {
 shadowJar {
     archiveBaseName.set('corda-shell')
     mergeServiceFiles()
+}
+
+processResources {
+    from file("./resources/log4j2.xml")
 }
 
 artifacts {
