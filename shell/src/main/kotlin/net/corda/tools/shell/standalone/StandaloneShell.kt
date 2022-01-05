@@ -1,4 +1,4 @@
-package net.corda.tools.shell
+package net.corda.tools.shell.standalone
 
 import com.jcabi.manifests.Manifests
 import net.corda.cliutils.CordaCliWrapper
@@ -8,6 +8,8 @@ import net.corda.core.internal.exists
 import net.corda.core.internal.isRegularFile
 import net.corda.core.internal.list
 import net.corda.core.utilities.contextLogger
+import net.corda.tools.shell.InteractiveShell
+import net.corda.tools.shell.ShellConfiguration
 import org.fusesource.jansi.Ansi
 import org.fusesource.jansi.AnsiConsole
 import org.slf4j.bridge.SLF4JBridgeHandler

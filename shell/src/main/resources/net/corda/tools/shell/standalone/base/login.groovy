@@ -1,4 +1,4 @@
-package net.corda.tools.shell.base
+package net.corda.tools.shell.standalone.base
 
 // Note that this file MUST be in a sub-directory called "base" relative to the path
 // given in the configuration code in InteractiveShell.
