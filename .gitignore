@@ -1,3 +1,7 @@
 **/.idea/**
 **/.gradle/**
 **/build/**
+**/out/production/**
+**/out/integrationTest/**
+**/out/test/**
+.settings
