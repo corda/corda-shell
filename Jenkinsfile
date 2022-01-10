@@ -46,12 +46,12 @@ pipeline {
         cron '@midnight'
     }
 
-    environment {
+    //environment {
         // Replace / with :: as links from Jenkins to Artifactory are broken if we use slashes
         // in the name
         // ARTIFACTORY_BUILD_NAME = "Corda / Publish / Publish Nightly to Artifactory"
         //         .replaceAll("/", " :: ")
-    }
+   // }
 
     stages {
         // stage('Sonatype Check') {
