@@ -2,7 +2,7 @@
 <Configuration status="info">
     <Properties>
         <Property name="log-path">logs</Property>
-        <Property name="log-name">shell-cli</Property>
+        <Property name="log-name">shell</Property>
         <Property name="consoleLogLevel">${sys:consoleLogLevel:-error}</Property>
         <Property name="defaultLogLevel">${sys:defaultLogLevel:-info}</Property>
     </Properties>
