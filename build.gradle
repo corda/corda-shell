@@ -209,10 +209,7 @@ bintrayConfig {
     projectUrl = 'https://github.com/corda/corda-shell'
     gpgSign = true
     gpgPassphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
-    publications = [
-        'corda-shell',
-        'corda-tools-shell-cli',
-    ]
+    publications = ['corda-shell']
     license {
         name = 'Apache-2.0'
         url = 'https://www.apache.org/licenses/LICENSE-2.0'
