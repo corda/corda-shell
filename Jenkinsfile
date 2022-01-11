@@ -4,14 +4,11 @@ import groovy.transform.Field
 
 killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
 
-/*
-** calculate the stage for NexusIQ evaluation
-**  * build for snapshots
-*/
-def nexusDefaultIqStage = "build"
-
 @Field
 String mavenLocal = 'tmp/mavenlocal'
+
+def nexusDefaultIqStage = "build"
+
 
 /**
  * make sure calculated default value of NexusIQ stage is first in the list
@@ -35,11 +32,9 @@ boolean isEntReleaseBranch = (env.BRANCH_NAME =~ /^release\/ent\/.*/)
 boolean isOSReleaseTag = (env.BRANCH_NAME =~ /^release_OS_\/.*/)
 boolean isENTReleaseTag = (env.TAG_NAME =~ /^release_ENT_.*/) 
 
-String nexusIdOS ="net.corda-corda-shell-4.9"
-String nexusIdENT ="com.r3.corda-corda-shell-4.9"
-
-
 String artifactoryBuildName = "Corda-Shell"
+
+// Artifactory build info links
 if(!isRelease && isOSReleaseBranch){
    artifactoryBuildName = "${artifactoryBuildName}-OS/Jenkins/snapshot/:"${env.BRANCH_NAME}
 }else if (isRelease && isOSReleaseTag){
@@ -48,11 +43,7 @@ if(!isRelease && isOSReleaseBranch){
     artifactoryBuildName = "${artifactoryBuildName}-Ent/Jenkins/snapshot:"${env.BRANCH_NAME}
 }else if(isRelease && isENTReleaseTag){
     artifactoryBuildName = "${artifactoryBuildName}-Ent/Jenkins/:"${env.BRANCH_NAME}    
-} else{
-     artifactoryBuildName = "${artifactoryBuildName}-Ent/Jenkins/:"${env.BRANCH_NAME}    
-
 }
-
 
 pipeline {
     agent { label 'standard' }
@@ -92,7 +83,6 @@ pipeline {
                     }
                 }
             }
-            
 
         stage('Sonatype Check') {
             steps {
@@ -106,7 +96,7 @@ pipeline {
                     echo "${groupId}-${artifactId}-${version}"                  
               }
                         
-                    dir(mavenLocal) {                        
+                dir(mavenLocal) {                        
                         script {
                             fileToScan = findFiles(
                                 excludes: '**/*-javadoc.jar',
@@ -119,14 +109,14 @@ pipeline {
                             iqScanPatterns: fileToScan,
                             iqStage:  params.nexusIqStage
                         )
-                    }
+                }
              }
         }
 
         stage('Build') {
             steps {
                 script{
-                    sh "./gradlew assemble -Si"
+                    sh "./gradlew clean assemble -Si"
                 }
             }
         }
@@ -148,41 +138,50 @@ pipeline {
         stage('Publish to Artifactory') {
             when {
                 expression { params.DO_PUBLISH }
-                beforeAgent true
             }
-
             steps {
-                rtServer (
-                        id: 'R3-Artifactory',
-                        url: 'https://software.r3.com/artifactory',
-                        credentialsId: 'artifactory-credentials'
-                )
-                rtGradleDeployer (
-                        id: 'deployer',
-                        serverId: 'R3-Artifactory',
-                        repo: 'corda-dev',
-                )
-                withCredentials([
-                        usernamePassword(credentialsId: 'artifactory-credentials',
-                                         usernameVariable: 'CORDA_ARTIFACTORY_USERNAME',
-                                         passwordVariable: 'CORDA_ARTIFACTORY_PASSWORD')]) {
-                    rtGradleRun (
-                            usesPlugin: true,
-                            useWrapper: true,
-                            switches: "--no-daemon -Si",
-                            tasks: 'artifactoryPublish',
-                            deployerId: 'deployer',
-                            buildName: env.ARTIFACTORY_BUILD_NAME
-                    )
+                script{
+                        boolean isOpenSource = groupId.equals("net.corda") ? true : false        
+                        rtServer (
+                                id: 'R3-Artifactory',
+                                url: 'https://software.r3.com/artifactory',
+                                credentialsId: 'artifactory-credentials'
+                        )
+
+                        if(!isOpenSource){
+                            rtGradleDeployer (
+                                    id: 'deployer',
+                                    serverId: 'R3-Artifactory',
+                                    repo: isRelease ? 'r3-corda-releases' : 'r3-corda-dev'
+                            )
+                        }else{
+                            rtGradleDeployer (
+                                    id: 'deployer',
+                                    serverId: 'R3-Artifactory',
+                                    repo: isRelease ? 'corda-releases' : 'corda-dev'
+                            )
+                        }
+
+                        withCredentials([
+                                usernamePassword(credentialsId: 'artifactory-credentials',
+                                                usernameVariable: 'CORDA_ARTIFACTORY_USERNAME',
+                                                passwordVariable: 'CORDA_ARTIFACTORY_PASSWORD')]) {
+                            rtGradleRun (
+                                    usesPlugin: true,
+                                    useWrapper: true,
+                                    switches: "--no-daemon -Si",
+                                    tasks: 'artifactoryPublish',
+                                    deployerId: 'deployer',
+                                    buildName: env.ARTIFACTORY_BUILD_NAME
+                            )
+                        }
+                        rtPublishBuildInfo (
+                                serverId: 'R3-Artifactory',
+                                buildName: env.ARTIFACTORY_BUILD_NAME
+                        )
+                    }
                 }
-                rtPublishBuildInfo (
-                        serverId: 'R3-Artifactory',
-                        buildName: env.ARTIFACTORY_BUILD_NAME
-                )
-            }
         }
     }
-
-
 
 }
