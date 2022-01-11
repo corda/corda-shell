@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.4' apply false
+    id 'com.github.johnrengelman.shadow' version '5.2.0' apply false
 }
 
 
@@ -18,6 +18,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 description 'Corda Shell'
 
 configurations {
+    cordaShellDependencies {}
     integrationTestCompile.extendsFrom testCompile
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
@@ -104,11 +105,12 @@ task integrationTest(type: Test) {
 
 jar {
     enabled = false
-    baseName 'corda-shell'
+    archiveClassifier = 'ignore'
 }
 
 shadowJar {
-    archiveBaseName.set('corda-shell')
+    archiveBaseName = 'corda-shell'
+    archiveClassifier = ''
     mergeServiceFiles()
     manifest {
         attributes "Corda-Release-Version": cordaReleaseVersion
@@ -127,5 +129,7 @@ artifacts {
 }
 
 publish {
-    name jar.baseName
+    dependenciesFrom configurations.cordaShellDependencies
+    name shadowJar.archiveBaseName
+    disableDefaultJar = true
 }
