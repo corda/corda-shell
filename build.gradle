@@ -65,7 +65,7 @@ if (System.getenv("RELEASE_VERSION")?.trim()) {
     } else if (System.getenv('VERSION_SUFFIX')) {
         versionSuffix = System.getenv('VERSION_SUFFIX')
     }
-    version = "$cordaReleaseVersion$versionSuffix"
+    version = "$cordaShellReleaseVersion$versionSuffix"
 }
 
 logger.quiet("Corda release version: {}", version)
@@ -77,10 +77,6 @@ allprojects {
 
     repositories {
         mavenLocal()
-        // Use system environment to activate caching with Artifactory,
-        // because it is actually easier to pass that during parallel build.
-        // NOTE: it has to be a name of a virtual repository with all
-        // required remote or local repositories!
         if (System.getenv("CORDA_USE_CACHE")) {
             maven {
                 name "R3 Maven remote repositories"
