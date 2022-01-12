@@ -1,0 +1,195 @@
+import static org.gradle.api.JavaVersion.VERSION_1_8
+
+buildscript {
+    repositories {
+        mavenLocal()
+        // Use system environment to activate caching with Artifactory,
+        // because it is actually easier to pass that during parallel build.
+        // NOTE: it has to be a name of a virtual repository with all
+        // required remote or local repositories!
+        if (System.getenv("CORDA_USE_CACHE")) {
+            maven {
+                name "R3 Maven remote repositories"
+                url "${artifactoryContextUrl}/${System.getenv("CORDA_USE_CACHE")}"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
+        } else {
+            maven {
+                url "${artifactoryContextUrl}/corda-dependencies-dev"
+                content {
+                    includeGroupByRegex 'net\\.corda(\\..*)?'
+                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                }
+            }
+            maven {
+                url "${artifactoryContextUrl}/corda-releases"
+                content {
+                    includeGroupByRegex 'net\\.corda(\\..*)?'
+                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                }
+            }
+            maven { url 'https://software.r3.com/artifactory/corda-releases' }
+            maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
+            mavenCentral()
+            jcenter()
+        }
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "net.corda.plugins:quasar-utils:$gradlePluginsVersion"
+        classpath "net.corda.plugins:publish-utils:$gradlePluginsVersion"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:$artifactoryPluginVersion"
+    }
+}
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
+    id 'maven-publish'
+}
+
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'net.corda.plugins.publish-utils'
+
+if (System.getenv("RELEASE_VERSION")?.trim()) {
+    version = System.getenv("RELEASE_VERSION")
+} else {
+    def versionSuffix = '-SNAPSHOT'
+    if(project.hasProperty('overridePublishVersionSuffix')) {
+        versionSuffix = project.property('overridePublishVersionSuffix')
+    } else if (System.getenv('VERSION_SUFFIX')) {
+        versionSuffix = System.getenv('VERSION_SUFFIX')
+    }
+    version = "$cordaShellReleaseVersion$versionSuffix"
+}
+
+logger.quiet("Corda release version: {}", version)
+
+allprojects {
+
+    group 'net.corda'
+    version rootProject.version
+
+    repositories {
+        mavenLocal()
+        if (System.getenv("CORDA_USE_CACHE")) {
+            maven {
+                name "R3 Maven remote repositories"
+                url "${artifactoryContextUrl}/${System.getenv("CORDA_USE_CACHE")}"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
+        } else {
+            maven {
+                url "${artifactoryContextUrl}/corda-dependencies"
+                content {
+                    includeGroupByRegex 'net\\.corda(\\..*)?'
+                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                    includeGroup 'co.paralleluniverse'
+                    includeGroup 'org.crashub'
+                    includeGroup 'com.github.bft-smart'
+                }
+            }
+            maven {
+                url "${artifactoryContextUrl}/corda-dev"
+                content {
+                    includeGroupByRegex 'net\\.corda(\\..*)?'
+                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                }
+            }
+            maven {
+                url 'https://repo.gradle.org/gradle/libs-releases'
+                content {
+                    includeGroup 'org.gradle'
+                    includeGroup 'com.github.detro'
+                }
+            }
+            maven { url 'https://software.r3.com/artifactory/corda-releases' }
+            maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
+            mavenCentral()
+            jcenter()
+        }
+    }
+    tasks.withType(Jar).configureEach { task ->
+        // Includes War and Ear
+        manifest {
+            attributes('Corda-Release-Version': cordaReleaseVersion)
+            attributes('Corda-Platform-Version': cordaPlatformVersion)
+            attributes('Corda-Vendor': 'Corda Open Source')
+            attributes('Automatic-Module-Name': "net.corda.${task.project.name.replaceAll('-', '.')}")
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+}
+
+allprojects {
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-Xlint:-options" << "-parameters"
+        options.compilerArgs << '-XDenableSunApiLintControl'
+        options.encoding = 'UTF-8'
+    }
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            languageVersion = "1.2"
+            apiVersion = "1.2"
+            jvmTarget = VERSION_1_8
+            javaParameters = true   // Useful for reflection.
+            freeCompilerArgs = ['-Xjvm-default=compatibility']
+            allWarningsAsErrors = false
+        }
+    }
+}
+
+artifactory {
+    publish {
+        contextUrl = artifactoryContextUrl
+        repository {
+            repoKey = 'corda-dev'
+            username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+            password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+        }
+
+        defaults {
+            // Root project applies the plugin (for this block) but does not need to be published
+            if (project != rootProject) {
+                publications(project.extensions.publish.name())
+            }
+        }
+    }
+}
+
+bintrayConfig {
+    user = System.getenv('CORDA_BINTRAY_USER') ?: System.getProperty('corda.bintray.user')
+    key = System.getenv('CORDA_BINTRAY_KEY') ?: System.getProperty('corda.bintray.key')
+    repo = 'corda'
+    org = 'r3'
+    licenses = ['Apache-2.0']
+    vcsUrl = 'https://github.com/corda/corda-shell'
+    projectUrl = 'https://github.com/corda/corda-shell'
+    gpgSign = true
+    gpgPassphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
+    publications = ['corda-shell']
+    license {
+        name = 'Apache-2.0'
+        url = 'https://www.apache.org/licenses/LICENSE-2.0'
+        distribution = 'repo'
+    }
+    developer {
+        id = 'R3'
+        name = 'R3'
+        email = 'dev@corda.net'
+    }
+}
