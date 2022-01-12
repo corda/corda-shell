@@ -182,7 +182,6 @@ abstract class ANSIProgressRenderer {
                     indent++
                 }
                 ansi.reset()
-
                 ansi.eraseLine(Ansi.Erase.FORWARD)
                 ansi.newline()
                 newLinesDrawn++

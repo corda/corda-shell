@@ -22,6 +22,7 @@ public class CheckpointShellCommand extends InteractiveShellCommand<FlowManagerR
     @Command
     @Man("Outputs the contents of all checkpoints as json to be manually reviewed")
     @Usage("Outputs the contents of all checkpoints as json to be manually reviewed")
+    @SuppressWarnings("unused")
     public void dump() {
         runDumpCheckpoints(ops());
     }

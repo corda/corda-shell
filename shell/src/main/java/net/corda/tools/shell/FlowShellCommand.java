@@ -3,6 +3,8 @@ package net.corda.tools.shell;
 // See the comments at the top of run.java
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
+import net.corda.core.flows.StateMachineRunId;
 import net.corda.core.messaging.CordaRPCOps;
 import net.corda.tools.shell.utlities.ANSIProgressRenderer;
 import net.corda.tools.shell.utlities.CRaSHANSIProgressRenderer;
@@ -22,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 import static net.corda.tools.shell.InteractiveShell.killFlowById;
+import static net.corda.tools.shell.InteractiveShell.parseStateMachineRunId;
 import static net.corda.tools.shell.InteractiveShell.runFlowByNameFragment;
 import static net.corda.tools.shell.InteractiveShell.runStateMachinesView;
 
@@ -36,6 +39,16 @@ import static net.corda.tools.shell.InteractiveShell.runStateMachinesView;
 public class FlowShellCommand extends CordaRpcOpsShellCommand {
 
     private static final Logger logger = LoggerFactory.getLogger(FlowShellCommand.class);
+
+    @VisibleForTesting
+    FlowRPCShellCommand rpcShellCommand;
+
+    private FlowRPCShellCommand getFlowRPCShellCommand() {
+        if (rpcShellCommand == null) {
+            rpcShellCommand = new FlowRPCShellCommand(context);
+        }
+        return rpcShellCommand;
+    }
 
     @Command
     @Usage("Start a (work)flow on the node. This is how you can change the ledger.\n\n" +
@@ -54,7 +67,8 @@ public class FlowShellCommand extends CordaRpcOpsShellCommand {
     // TODO Limit number of flows shown option?
     @Command
     @Usage("Watch information about state machines running on the node with result information.")
-    public void watch(InvocationContext<TableElement> context) throws Exception {
+    @SuppressWarnings("unused")
+    public void watch(InvocationContext<TableElement> context) {
         logger.info("Executing command \"flow watch\".");
         runStateMachinesView(out, ops());
     }
@@ -98,5 +112,77 @@ public class FlowShellCommand extends CordaRpcOpsShellCommand {
     ) {
         logger.info("Executing command \"flow kill {}\".", id);
         killFlowById(id, out, ops(), objectMapper(null));
+    }
+
+    @Command
+    @Usage("Pause a flow that is running on this node.")
+    public void pause(
+        @Usage("The UUID for the flow that we wish to pause") @Argument String id
+    ) {
+        logger.info("Executing command \"flow pause {}\".", id);
+        StateMachineRunId parsedId = parseStateMachineRunId(id, out, objectMapper(null));
+        if (getFlowRPCShellCommand().pause(parsedId)) {
+            out.println("Paused flow " + parsedId, Decoration.bold, Color.yellow);
+        } else {
+            out.println("Failed to pause flow " + parsedId, Decoration.bold, Color.red);
+        }
+    }
+
+    @Command
+    @Usage("Pause all flows that are running on this node.")
+    public void pauseAll() {
+        logger.info("Executing command \"flow pauseAll\".");
+        if (getFlowRPCShellCommand().pauseAll()) {
+            out.println("Pausing all flows succeeded.", Decoration.bold, Color.yellow);
+        } else {
+            out.println("Failed to pause one or more flows.", Decoration.bold, Color.red);
+        }
+    }
+
+    @Command
+    @Usage("Pause all Hospitalized flows that are running on this node.")
+    public void pauseAllHospitalized() {
+        logger.info("Executing command \"flow pauseAllHospitalized\".");
+        if (getFlowRPCShellCommand().pauseAllHospitalized()) {
+            out.println("Pausing all Hospitalized flows succeeded.", Decoration.bold, Color.yellow);
+        } else {
+            out.println("Failed to pause one or more Hospitalized flows.", Decoration.bold, Color.red);
+        }
+    }
+
+    @Command
+    @Usage("Retry a flow that is running on this node.")
+    public void retry(
+        @Usage("The UUID for the flow that we wish to retry") @Argument String id
+    ) {
+        logger.info("Executing command \"flow retry {}\".", id);
+        StateMachineRunId parsedId = parseStateMachineRunId(id, out, objectMapper(null));
+        if (getFlowRPCShellCommand().retry(parsedId)) {
+            out.println("Retried flow " + parsedId, Decoration.bold, Color.yellow);
+        } else {
+            out.println("Failed to retry flow " + parsedId, Decoration.bold, Color.red);
+        }
+    }
+
+    @Command
+    @Usage("Retry all Paused flows.")
+    public void retryAllPaused() {
+        logger.info("Executing command \"flow retryAllPaused\".");
+        if (getFlowRPCShellCommand().retryAllPaused()) {
+            out.println("Retrying all paused flows succeeded.", Decoration.bold, Color.yellow);
+        } else {
+            out.println("One or more paused flows failed to retry.", Decoration.bold, Color.red);
+        }
+    }
+
+    @Command
+    @Usage("Retry all Paused flows which were hospitalized before paused.")
+    public void retryAllPausedHospitalized() {
+        logger.info("Executing command \"flow retryAllPausedHospitalized\".");
+        if (getFlowRPCShellCommand().retryAllPausedHospitalized()) {
+            out.println("Retrying all paused hospitalized flows succeeded.", Decoration.bold, Color.yellow);
+        } else {
+            out.println("One or more paused hospitalized flows failed to retry.", Decoration.bold, Color.red);
+        }
     }
 }

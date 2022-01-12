@@ -7,6 +7,7 @@ import net.corda.cliutils.start
 import net.corda.core.internal.exists
 import net.corda.core.internal.isRegularFile
 import net.corda.core.internal.list
+import net.corda.core.utilities.contextLogger
 import net.corda.tools.shell.InteractiveShell
 import net.corda.tools.shell.ShellConfiguration
 import org.fusesource.jansi.Ansi
@@ -27,14 +28,15 @@ fun main(args: Array<String>) {
 }
 
 class StandaloneShell : CordaCliWrapper("corda-shell", "The Corda standalone shell.") {
+    companion object {
+        private val logger by lazy { contextLogger() }
 
-    private companion object {
         val logo = """
-R   ______               __
-R  / ____/     _________/ /___ _
-R / /     __  / ___/ __  / __ `/
-R/ /___  /_/ / /  / /_/ / /_/ /
-R\____/     /_/   \__,_/\__,_/
+R   ______               __       B  _____ _   _ _____ _____ ____  ____  ____  ___ ____  _____
+R  / ____/     _________/ /___ _  B | ____| \ | |_   _| ____|  _ \|  _ \|  _ \|_ _/ ___|| ____|
+R / /     __  / ___/ __  / __ `/  B |  _| |  \| | | | |  _| | |_) | |_) | |_) || |\___ \|  _|
+R/ /___  /_/ / /  / /_/ / /_/ /   B | |___| |\  | | | | |___|  _ <|  __/|  _ < | | ___) | |___
+R\____/     /_/   \__,_/\__,_/    B |_____|_| \_| |_| |_____|_| \_\_|   |_| \_\___|____/|_____|
 D""".trimStart()
     }
 
@@ -97,8 +99,10 @@ D""".trimStart()
         InteractiveShell.startShell(configuration, classLoader, true)
         try {
             //connecting to node by requesting node info to fail fast
-            InteractiveShell.nodeInfo()
+            val nodeInfo = InteractiveShell.nodeInfo()
+            logger.info("Connected to ${nodeInfo.legalIdentities.first().name} at ${configuration.hostAndPort}")
         } catch (e: Exception) {
+            logger.error("Cannot login to ${configuration.hostAndPort}, reason: \"${e.message}\"")
             println("Cannot login to ${configuration.hostAndPort}, reason: \"${e.message}\"")
             return ExitCodes.FAILURE
         }
@@ -128,14 +132,18 @@ D""".trimStart()
     }
 
     private fun addColours(logo: String): String {
+        // Replace the R and B letters with their colour code escapes to make the banner prettier.
         val red = Ansi.ansi().fgBrightRed().toString()
+        val blue = Ansi.ansi().fgBrightBlue().toString()
         val default = Ansi.ansi().reset().toString()
-        return logo.replace("R", red).replace("D", default)
+        return logo.replace("R", red).replace("B", blue).replace("D", default)
     }
 
     private fun generateVersionString(): String {
         val versionString = "--- ${getManifestEntry("Corda-Vendor")} " +
                 "${getManifestEntry("Corda-Release-Version")} ---"
-        return versionString + System.lineSeparator()
+        // Make sure the version string is padded to be the same length as the logo
+        val paddingLength = Math.max(93 - versionString.length, 0)
+        return versionString + "-".repeat(paddingLength) + System.lineSeparator()
     }
 }

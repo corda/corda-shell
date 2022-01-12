@@ -38,9 +38,24 @@ buildscript {
             maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
             mavenCentral()
         }
+        maven {
+            url "${artifactoryContextUrl}/r3-corda-dev"
+            credentials {
+                username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+            }
+        }
+        maven {
+            url "${artifactoryContextUrl}/r3-corda-releases"
+            credentials {
+                username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+            }
+        }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "net.corda.plugins:cordapp:$gradlePluginsVersion"
         classpath "net.corda.plugins:quasar-utils:$gradlePluginsVersion"
         classpath "net.corda.plugins:publish-utils:$gradlePluginsVersion"
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:$artifactoryPluginVersion"
@@ -62,7 +77,7 @@ logger.quiet("Corda release version: {}", version)
 
 allprojects {
 
-    group 'net.corda'
+    group 'com.r3.corda'
     version rootProject.version
 
     repositories {
@@ -106,6 +121,20 @@ allprojects {
             }
             maven { url 'https://software.r3.com/artifactory/corda-releases' }
             maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
+            maven {
+                url "${artifactoryContextUrl}/r3-corda-dev"
+                credentials {
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
+            maven {
+                url "${artifactoryContextUrl}/r3-corda-releases"
+                credentials {
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
             mavenCentral()
         }
     }
@@ -147,7 +176,11 @@ artifactory {
     publish {
         contextUrl = artifactoryContextUrl
         repository {
-            repoKey = 'corda-dev'
+            if (System.getProperty('publishApiDocs') != null) {
+                repoKey = 'corda-dependencies-dev'
+            } else {
+                repoKey = 'r3-corda-dev'
+            }
             username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
             password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
         }

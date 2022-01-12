@@ -111,7 +111,7 @@ class SSHServerTest {
             channel.disconnect()
             session.disconnect()
 
-            assertThat(response).matches("(?s)User not authorized to perform RPC call .*")
+            assertThat(response).contains("User not authorized to perform RPC call")
 
             InteractiveShell.stop()
         }

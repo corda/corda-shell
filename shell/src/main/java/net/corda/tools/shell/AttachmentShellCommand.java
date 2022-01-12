@@ -21,6 +21,7 @@ public class AttachmentShellCommand extends InteractiveShellCommand<AttachmentTr
     @Command
     @Man("Displays the trusted CorDapp attachments that have been manually installed or received over the network")
     @Usage("Displays the trusted CorDapp attachments that have been manually installed or received over the network")
+    @SuppressWarnings("unused")
     public void trustInfo() {
         runAttachmentTrustInfoView(out, ops());
     }

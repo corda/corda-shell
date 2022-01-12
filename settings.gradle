@@ -1,3 +1,5 @@
 rootProject.name = 'corda-shell'
 
 include 'shell'
+include 'test-cordapps:failing-flows'
+include 'test-cordapps:failing-flows:workflows'
