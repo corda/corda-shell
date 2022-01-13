@@ -93,7 +93,7 @@ pipeline {
                     version = props['cordaReleaseVersion']
                     groupId = props['cordaReleaseGroup']
                     def artifactId = 'corda-shell'
-                    nexusAppId = "${groupId}-${artifactId}-4.9"
+                    nexusAppId = "${groupId}-${artifactId}-${version}"
                     echo "${groupId}-${artifactId}-${version}"                  
               }
                         
