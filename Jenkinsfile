@@ -90,7 +90,7 @@ pipeline {
                 
               script{
                     def props = readProperties file: 'gradle.properties'
-                    version = props['cordaReleaseVersion']
+                    version = props['cordaShellReleaseVersion']
                     groupId = props['cordaReleaseGroup']
                     def artifactId = 'corda-shell'
                     nexusAppId = "${groupId}-${artifactId}-${version}"
