@@ -112,9 +112,6 @@ allprojects {
         }
     }
 
-    ext.releaseVersion = String.valueOf(project.cordaReleaseVersion).trim();
-    ext.platformVersion = String.valueOf(project.cordaPlatformVersion).trim();
-
     tasks.withType(Jar).configureEach { task ->
         // Includes War and Ear
         manifest {
