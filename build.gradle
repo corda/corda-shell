@@ -56,17 +56,8 @@ plugins {
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'net.corda.plugins.publish-utils'
 
-if (System.getenv("RELEASE_VERSION")?.trim()) {
-    version = System.getenv("RELEASE_VERSION")
-} else {
-    def versionSuffix = '-SNAPSHOT'
-    if(project.hasProperty('overridePublishVersionSuffix')) {
-        versionSuffix = project.property('overridePublishVersionSuffix')
-    } else if (System.getenv('VERSION_SUFFIX')) {
-        versionSuffix = System.getenv('VERSION_SUFFIX')
-    }
-    version = "$cordaShellReleaseVersion$versionSuffix"
-}
+version = "$cordaShellReleaseVersion$versionSuffix"
+
 
 logger.quiet("Corda release version: {}", version)
 
@@ -120,6 +111,10 @@ allprojects {
             jcenter()
         }
     }
+
+    ext.releaseVersion = String.valueOf(project.cordaReleaseVersion).trim();
+    ext.platformVersion = String.valueOf(project.cordaPlatformVersion).trim();
+
     tasks.withType(Jar).configureEach { task ->
         // Includes War and Ear
         manifest {
