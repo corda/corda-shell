@@ -37,7 +37,6 @@ buildscript {
             maven { url 'https://software.r3.com/artifactory/corda-releases' }
             maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
             mavenCentral()
-            jcenter()
         }
     }
     dependencies {
@@ -108,7 +107,6 @@ allprojects {
             maven { url 'https://software.r3.com/artifactory/corda-releases' }
             maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
             mavenCentral()
-            jcenter()
         }
     }
 
