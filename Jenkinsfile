@@ -79,7 +79,7 @@ pipeline {
                         sh 'rm -rf $MAVEN_LOCAL_PUBLISH'
                         sh 'mkdir -p $MAVEN_LOCAL_PUBLISH'
                         sh "./gradlew publishToMavenLocal -Dmaven.repo.local=$MAVEN_LOCAL_PUBLISH" 
-                        sh 'ls -lR $MAVEN_LOCAL_PUBLISH'
+                        sh 'ls -lR "${MAVEN_LOCAL_PUBLISH}"'
 
                     }
                 }
