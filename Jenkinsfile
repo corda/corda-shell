@@ -145,16 +145,13 @@ pipeline {
                         def snapshotRepo
                         def releasesRepo
 
-                        if(!isOpenSource && isRelease){
+                        if(isOpenSource){
+                             releasesRepo = "corda-releases"
+                             snapshotRepo = "corda-dev"
+                        }else {
                              releasesRepo = "r3-corda-releases"
-                        }else if (isOpenSource && isRelease){
-                            releasesRepo = "corda-releases"
-                        }else if(!isOpenSource && !isRelease){
-                            snapshotRepo = "r3-corda-dev"
-                        }else if(isOpenSource && !isRelease){
-                            snapshotRepo = "corda-dev"
+                             snapshotRepo = "r3-corda-dev"
                         }
-
                         rtServer (
                                 id: 'R3-Artifactory',
                                 url: 'https://software.r3.com/artifactory',
