@@ -145,13 +145,13 @@ pipeline {
                         def snapshotRepo
                         def releasesRepo
 
-                        if(!isOpenSource && isRelease(){
+                        if(!isOpenSource && isRelease){
                              releasesRepo =  "r3-corda-releases"
-                        }else if (isOpenSource && isRelease()){
+                        }else if (isOpenSource && isRelease){
                             releasesRepo =  "corda-releases"
-                        }else if(!isOpenSource && !isRelease()){
+                        }else if(!isOpenSource && !isRelease){
                             snapshotRepo="r3-corda-dev"
-                        }else if(isOpenSource && !isRelease() ){
+                        }else if(isOpenSource && !isRelease){
                             snapshotRepo="corda-dev"
                         }
 
