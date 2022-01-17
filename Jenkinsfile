@@ -141,26 +141,30 @@ pipeline {
             }
             steps {
                 script{
-                        boolean isOpenSource = groupId.equals("net.corda") ? true : false        
+                        boolean isOpenSource = groupId.equals("net.corda") ? true : false
+                        String snapshot-repo = ""
+                        String releases-repo = ""
+
+                        if(!isOpenSource && isRelease(){
+                             releases-repo =  "r3-corda-releases"
+                        }else if (isOpenSource && isRelease()){
+                            releases-repo =  "corda-releases"
+                        }else if(!isOpenSource && !isRelease()){
+                            snapshot-repo="r3-corda-dev"
+                        }else if(isOpenSource && !isRelease() ){
+                            snapshot-repo="corda-dev"
+                        }
+
                         rtServer (
                                 id: 'R3-Artifactory',
                                 url: 'https://software.r3.com/artifactory',
                                 credentialsId: 'artifactory-credentials'
                         )
-
-                        if(!isOpenSource){
-                            rtGradleDeployer (
-                                    id: 'deployer',
-                                    serverId: 'R3-Artifactory',
-                                    repo: isRelease ? 'r3-corda-releases' : 'r3-corda-dev'
-                            )
-                        }else{
-                            rtGradleDeployer (
-                                    id: 'deployer',
-                                    serverId: 'R3-Artifactory',
-                                    repo: isRelease ? 'corda-releases' : 'corda-dev'
-                            )
-                        }
+                        rtGradleDeployer (
+                                id: 'deployer',
+                                serverId: 'R3-Artifactory',
+                                repo: isRelease ? releases-repo : snapshot-repo
+                        )
 
                         withCredentials([
                                 usernamePassword(credentialsId: 'artifactory-credentials',
