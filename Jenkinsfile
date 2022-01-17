@@ -69,7 +69,6 @@ pipeline {
     environment {
         ARTIFACTORY_BUILD_NAME = "${artifactoryBuildName}"
         MAVEN_LOCAL_PUBLISH = "${env.WORKSPACE}/${mavenLocal}"
-
     }
 
     stages {
