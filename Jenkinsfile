@@ -142,17 +142,17 @@ pipeline {
             steps {
                 script{
                         boolean isOpenSource = groupId.equals("net.corda") ? true : false
-                        String snapshot-repo = ""
-                        String releases-repo = ""
+                        def snapshotRepo
+                        def releasesRepo
 
                         if(!isOpenSource && isRelease(){
-                             releases-repo =  "r3-corda-releases"
+                             releasesRepo =  "r3-corda-releases"
                         }else if (isOpenSource && isRelease()){
-                            releases-repo =  "corda-releases"
+                            releasesRepo =  "corda-releases"
                         }else if(!isOpenSource && !isRelease()){
-                            snapshot-repo="r3-corda-dev"
+                            snapshotRepo="r3-corda-dev"
                         }else if(isOpenSource && !isRelease() ){
-                            snapshot-repo="corda-dev"
+                            snapshotRepo="corda-dev"
                         }
 
                         rtServer (
@@ -163,7 +163,7 @@ pipeline {
                         rtGradleDeployer (
                                 id: 'deployer',
                                 serverId: 'R3-Artifactory',
-                                repo: isRelease ? releases-repo : snapshot-repo
+                                repo: isRelease ? releasesRepo : snapshotRepo
                         )
 
                         withCredentials([
