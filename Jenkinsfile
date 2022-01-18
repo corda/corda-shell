@@ -36,13 +36,13 @@ String artifactoryBuildName = "Corda-Shell"
 
 // Artifactory build info links
 if(!isRelease && isOSReleaseBranch){
-   artifactoryBuildName = "${artifactoryBuildName}-OS/Jenkins/snapshot/:"${env.BRANCH_NAME}
+    artifactoryBuildName = "${artifactoryBuildName}-OS :: Jenkins :: snapshot :: ${env.BRANCH_NAME}"
 }else if (isRelease && isOSReleaseTag){
-    artifactoryBuildName = "${artifactoryBuildName}-OS/Jenkins/:"${env.BRANCH_NAME}
+    artifactoryBuildName = "${artifactoryBuildName}-OS :: Jenkins :: ${env.BRANCH_NAME}"
 }else if(!isRelease && isEntReleaseBranch){
-    artifactoryBuildName = "${artifactoryBuildName}-Ent/Jenkins/snapshot:"${env.BRANCH_NAME}
+    artifactoryBuildName = "${artifactoryBuildName}-Ent :: Jenkins :: snapshot :: ${env.BRANCH_NAME}"
 }else if(isRelease && isENTReleaseTag){
-    artifactoryBuildName = "${artifactoryBuildName}-Ent/Jenkins/:"${env.BRANCH_NAME}    
+    artifactoryBuildName = "${artifactoryBuildName}-Ent :: Jenkins :: ${env.BRANCH_NAME}"
 }
 
 
