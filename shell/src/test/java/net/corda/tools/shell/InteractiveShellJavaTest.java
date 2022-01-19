@@ -30,7 +30,10 @@ import java.util.Arrays;
 import java.util.Currency;
 
 import static java.util.stream.Collectors.toList;
+import static net.corda.testing.internal.InternalTestUtilsKt.IS_S390X;
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class InteractiveShellJavaTest {
@@ -38,8 +41,6 @@ public class InteractiveShellJavaTest {
 
     // should guarantee that FlowA will have synthetic method to access this field
     private static final String synthetic = "synth";
-
-    private static final boolean IS_OPENJ9 = System.getProperty("java.vm.name").toLowerCase().contains("openj9");
 
     abstract static class StringFlow extends FlowLogic<String> {
         abstract String getA();
@@ -161,6 +162,7 @@ public class InteractiveShellJavaTest {
     private InMemoryIdentityService ids =
         new InMemoryIdentityService(Lists.newArrayList(megaCorp.getIdentity()), InternalTestConstantsKt.getDEV_ROOT_CA().getCertificate());
 
+    @SuppressWarnings("deprecation")
     private ObjectMapper om = JacksonSupport.createInMemoryMapper(ids, new YAMLFactory());
 
     private String output;
@@ -190,7 +192,7 @@ public class InteractiveShellJavaTest {
     @Test
     public void flowStartSimple() throws InteractiveShell.NoApplicableConstructor {
         check("a: Hi there", "Hi there", FlowA.class);
-        if (!IS_OPENJ9) {
+        if (!IS_S390X) {
             check("b: 12", "12", FlowA.class);
             check("b: 12, c: Yo", "12Yo", FlowA.class);
         }
@@ -221,7 +223,7 @@ public class InteractiveShellJavaTest {
 
     @Test
     public void flowStartWithArrayType() throws InteractiveShell.NoApplicableConstructor {
-        if (!IS_OPENJ9) {
+        if (!IS_S390X) {
             check(
                 "b: [ One, Two, Three, Four ]",
                 "One+Two+Three+Four",
@@ -270,7 +272,8 @@ public class InteractiveShellJavaTest {
         try {
             check("amount: $100", "", FlowB.class);
         } catch (InteractiveShell.NoApplicableConstructor e) {
-            assertEquals("[amount: Amount<Currency>, abc: int]: missing parameter abc", e.getErrors().get(1));
+            assertThat(e.getErrors(), hasItem("[amount: Amount<Currency>, abc: int]: missing parameter abc"));
+            assertThat(e.getErrors(), hasItem("[party: Party, a: String]: missing parameter party"));
         }
     }
 

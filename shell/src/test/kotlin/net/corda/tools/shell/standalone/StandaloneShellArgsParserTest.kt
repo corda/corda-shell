@@ -1,9 +1,9 @@
-package net.corda.tools.shell.standalone
+package net.corda.tools.shell
 
 import net.corda.core.internal.toPath
 import net.corda.core.messaging.ClientRpcSslOptions
 import net.corda.core.utilities.NetworkHostAndPort
-import net.corda.tools.shell.ShellConfiguration
+import net.corda.tools.shell.standalone.ShellCmdLineOptions
 import org.junit.Test
 import java.nio.file.Paths
 import kotlin.test.assertEquals

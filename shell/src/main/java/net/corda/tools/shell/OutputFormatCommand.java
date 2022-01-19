@@ -9,6 +9,7 @@ import org.crsh.cli.Command;
 import org.crsh.cli.Man;
 import org.crsh.cli.Named;
 import org.crsh.cli.Usage;
+import org.crsh.command.BaseCommand;
 import org.crsh.command.InvocationContext;
 import org.crsh.command.ScriptException;
 import org.crsh.text.RenderPrintWriter;
@@ -18,7 +19,7 @@ import java.util.Map;
 @Man("Allows you to see and update the format that's currently used for the commands' output.")
 @Usage("Allows you to see and update the format that's currently used for the commands' output.")
 @Named("output-format")
-public class OutputFormatCommand extends CordaRpcOpsShellCommand {
+public class OutputFormatCommand extends BaseCommand {
 
     public OutputFormatCommand() {
     }
@@ -51,7 +52,6 @@ public class OutputFormatCommand extends CordaRpcOpsShellCommand {
     public void get(InvocationContext<Map> context) {
         OutputFormat outputFormat = InteractiveShell.getOutputFormat();
         final String format = OUTPUT_FORMAT_MAPPING.inverse().get(outputFormat);
-
         out.println(format);
     }
 
@@ -59,7 +59,6 @@ public class OutputFormatCommand extends CordaRpcOpsShellCommand {
         if (!OUTPUT_FORMAT_MAPPING.containsKey(format)) {
             throw new ScriptException("The provided format is not supported: " + format);
         }
-
         return OUTPUT_FORMAT_MAPPING.get(format);
     }
 }

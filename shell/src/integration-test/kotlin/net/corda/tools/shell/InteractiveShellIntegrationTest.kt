@@ -11,23 +11,11 @@ import com.nhaarman.mockito_kotlin.mock
 import net.corda.client.jackson.JacksonSupport
 import net.corda.client.jackson.internal.valueAs
 import net.corda.client.rpc.RPCException
-import net.corda.core.contracts.BelongsToContract
-import net.corda.core.contracts.CommandData
-import net.corda.core.contracts.Contract
-import net.corda.core.contracts.LinearState
-import net.corda.core.contracts.StateRef
-import net.corda.core.contracts.UniqueIdentifier
+import net.corda.core.contracts.*
 import net.corda.core.crypto.SecureHash
-import net.corda.core.flows.CollectSignaturesFlow
-import net.corda.core.flows.FlowExternalAsyncOperation
-import net.corda.core.flows.FlowExternalOperation
-import net.corda.core.flows.FlowLogic
-import net.corda.core.flows.FlowSession
-import net.corda.core.flows.InitiatedBy
-import net.corda.core.flows.InitiatingFlow
-import net.corda.core.flows.SignTransactionFlow
-import net.corda.core.flows.StartableByRPC
+import net.corda.core.flows.*
 import net.corda.core.identity.AbstractParty
+import net.corda.core.identity.CordaX500Name
 import net.corda.core.identity.Party
 import net.corda.core.internal.concurrent.transpose
 import net.corda.core.internal.createDirectories
@@ -37,6 +25,7 @@ import net.corda.core.internal.list
 import net.corda.core.messaging.ClientRpcSslOptions
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.messaging.startFlow
+import net.corda.core.node.NodeInfo
 import net.corda.core.node.ServiceHub
 import net.corda.core.transactions.LedgerTransaction
 import net.corda.core.transactions.SignedTransaction
@@ -78,8 +67,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.rules.TemporaryFolder
-import java.util.ArrayList
-import java.util.UUID
+import java.security.PublicKey
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeoutException
@@ -90,6 +79,26 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class InteractiveShellIntegrationTest {
+
+    class PartyInfoRpcOpsWrapper(
+        private val cordaRPCOps: CordaRPCOps
+    ) : JacksonSupport.PartyInfoRpcOps {
+        override val protocolVersion: Int
+            get() = cordaRPCOps.protocolVersion
+
+        override fun nodeInfoFromParty(party: AbstractParty): NodeInfo? =
+            cordaRPCOps.nodeInfoFromParty(party)
+
+        override fun partiesFromName(query: String, exactMatch: Boolean): Set<Party> =
+            cordaRPCOps.partiesFromName(query, exactMatch)
+
+        override fun partyFromKey(key: PublicKey): Party? =
+            cordaRPCOps.partyFromKey(key)
+
+        override fun wellKnownPartyFromX500Name(name: CordaX500Name): Party? =
+            cordaRPCOps.wellKnownPartyFromX500Name(name)
+    }
+
     @Rule
     @JvmField
     val tempFolder = TemporaryFolder()
@@ -269,7 +278,8 @@ class InteractiveShellIntegrationTest {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
             startShell(node)
             val (output, lines) = mockRenderPrintWriter()
-            InteractiveShell.runFlowByNameFragment(NoOpFlow::class.java.name, "", output, node.rpc, mockAnsiProgressRenderer())
+            val om = InteractiveShell.createYamlInputMapper(PartyInfoRpcOpsWrapper(node.rpc))
+            InteractiveShell.runFlowByNameFragment(NoOpFlow::class.java.name, "", output, node.rpc, mockAnsiProgressRenderer(), om)
             assertThat(lines.last()).startsWith("Flow completed with result:")
         }
     }
@@ -281,7 +291,8 @@ class InteractiveShellIntegrationTest {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
             startShell(node)
             val (output, lines) = mockRenderPrintWriter()
-            InteractiveShell.runFlowByNameFragment("NoOpFlowA", "", output, node.rpc, mockAnsiProgressRenderer())
+            val om = InteractiveShell.createYamlInputMapper(PartyInfoRpcOpsWrapper(node.rpc))
+            InteractiveShell.runFlowByNameFragment("NoOpFlowA", "", output, node.rpc, mockAnsiProgressRenderer(), om)
             assertThat(lines.last()).startsWith("Flow completed with result:")
         }
     }
@@ -293,7 +304,8 @@ class InteractiveShellIntegrationTest {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
             startShell(node)
             val (output, lines) = mockRenderPrintWriter()
-            InteractiveShell.runFlowByNameFragment("NoOpFlo", "", output, node.rpc, mockAnsiProgressRenderer())
+            val om = InteractiveShell.createYamlInputMapper(PartyInfoRpcOpsWrapper(node.rpc))
+            InteractiveShell.runFlowByNameFragment("NoOpFlo", "", output, node.rpc, mockAnsiProgressRenderer(), om)
             assertThat(lines.any { it.startsWith("Ambiguous name provided, please be more specific.") }).isTrue()
         }
     }
@@ -305,7 +317,8 @@ class InteractiveShellIntegrationTest {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
             startShell(node)
             val (output, lines) = mockRenderPrintWriter()
-            InteractiveShell.runFlowByNameFragment("Burble", "", output, node.rpc, mockAnsiProgressRenderer())
+            val om = InteractiveShell.createYamlInputMapper(PartyInfoRpcOpsWrapper(node.rpc))
+            InteractiveShell.runFlowByNameFragment("Burble", "", output, node.rpc, mockAnsiProgressRenderer(), om)
             assertThat(lines.last()).startsWith("Flow completed with result")
         }
     }
@@ -421,9 +434,8 @@ class InteractiveShellIntegrationTest {
             assertEquals(linearId.id.toString(), json["topLevelFlowLogic"]["myState"]["linearId"]["id"].asText())
             assertEquals(4, json["flowCallStackSummary"].size())
             assertEquals(4, json["flowCallStack"].size())
-            val sendAndReceiveJson = json["suspendedOn"]["sendAndReceive"][0]
-            assertEquals(bobNode.nodeInfo.singleIdentity().toString(), sendAndReceiveJson["session"]["peer"].asText())
-            assertEquals(SignedTransaction::class.qualifiedName, sendAndReceiveJson["sentPayloadType"].asText())
+            val receiveJson = json["suspendedOn"]["receive"][0]
+            assertEquals(bobNode.nodeInfo.singleIdentity().toString(), receiveJson["peer"].asText())
         }
     }
 

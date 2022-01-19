@@ -47,6 +47,9 @@ dependencies {
     // Jackson support: serialisation to/from JSON, YAML, etc.
     compile "$cordaReleaseGroup:corda-jackson:$cordaReleaseVersion"
 
+    compile "$cordaReleaseGroup:corda-extensions-api:$cordaReleaseVersion"
+    compile "$cordaReleaseGroup:corda-rpc-ext:$cordaReleaseVersion"
+
     // CRaSH: An embeddable monitoring and admin shell with support for adding new commands written in Groovy.
     compile("org.crashub:crash.shell:$crashVersion") {
         exclude group: "org.slf4j", module: "slf4j-jdk14"
@@ -68,6 +71,8 @@ dependencies {
     compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
     compile "org.slf4j:jul-to-slf4j:$slf4jVersion"
 
+    testCompile "$cordaReleaseGroup:corda-extensions-node:$cordaReleaseVersion"
+
     testImplementation "junit:junit:$junitVersion"
 
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junitVintageVersion"
@@ -81,6 +86,8 @@ dependencies {
     integrationTestCompile "com.jcraft:jsch:$jschVersion"
 
     integrationTestCompile "$cordaReleaseGroup:corda-node-driver:$cordaReleaseVersion"
+    integrationTestCompile "$cordaReleaseGroup:corda-test-utils:$cordaReleaseVersion"
+    integrationTestCompile project(':test-cordapps:failing-flows:workflows')
 
     testCompile "com.nhaarman:mockito-kotlin:$mockitoKotlinVersion"
     testCompile "org.mockito:mockito-core:$mockitoVersion"
@@ -108,7 +115,7 @@ shadowJar {
     manifest {
         attributes "Corda-Release-Version": cordaReleaseVersion
         attributes('Corda-Platform-Version': cordaPlatformVersion)
-        attributes "Corda-Vendor": "Corda Open Source"
+        attributes "Corda-Vendor": "Corda Enterprise Edition"
     }
 }
 

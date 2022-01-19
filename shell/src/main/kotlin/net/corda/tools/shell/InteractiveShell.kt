@@ -15,6 +15,7 @@ import net.corda.client.rpc.internal.RPCUtils.isShutdownMethodName
 import net.corda.client.rpc.notUsed
 import net.corda.core.CordaException
 import net.corda.core.concurrent.CordaFuture
+import net.corda.core.contracts.TimeWindow
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StateMachineRunId
@@ -34,6 +35,7 @@ import net.corda.core.messaging.FlowProgressHandle
 import net.corda.core.messaging.StateMachineUpdate
 import net.corda.core.messaging.flows.FlowManagerRPCOps
 import net.corda.core.messaging.pendingFlowsCount
+import net.corda.nodeapi.flow.hospital.FlowTimeWindow
 import net.corda.tools.shell.utlities.ANSIProgressRenderer
 import net.corda.tools.shell.utlities.StdoutANSIProgressRenderer
 import org.crsh.command.InvocationContext
@@ -70,6 +72,7 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.UndeclaredThrowableException
 import java.nio.file.Path
+import java.time.Duration
 import java.util.Properties
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
@@ -168,9 +171,19 @@ object InteractiveShell {
             "Commands to extract information about checkpoints stored within the node",
             CheckpointShellCommand::class.java
         )
-
+        ExternalResolver.INSTANCE.addCommand(
+            "flowStatus",
+            "Commands to extract information about checkpoints stored within the node",
+            FlowStatusQueryCommand::class.java
+        )
+        ExternalResolver.INSTANCE.addCommand(
+            "healthcheck",
+            "Commands to extract health check information about running node",
+            HealthCheckShellCommand::class.java
+        )
         val shellSafety = ShellSafety().apply {
             setSafeShell(runShellInSafeMode)
+            setAllowManCommand(configuration.manAllowed)
             setInternal(!standalone)
             setStandAlone(standalone)
             setAllowExitInSafeMode(configuration.localShellAllowExitInSafeMode || standalone)
@@ -207,7 +220,7 @@ object InteractiveShell {
     }
 
     class ShellLifecycle(private val shellCommands: Path, private val shellSafety: ShellSafety) : PluginLifeCycle() {
-        fun start(config: Properties, localUserName: String = "", localUserPassword: String = ""): Shell {
+        fun start(config: Properties, localUserName: String, localUserPassword: String): Shell {
             val classLoader = this.javaClass.classLoader
             val classpathDriver = ClassPathMountFactory(classLoader)
             val fileDriver = FileMountFactory(Utils.getCurrentDirectory())
@@ -269,13 +282,16 @@ object InteractiveShell {
         return outputFormat
     }
 
-    fun createYamlInputMapper(rpcOps: CordaRPCOps): ObjectMapper {
+    fun createYamlInputMapper(info: JacksonSupport.PartyInfoRpcOps): ObjectMapper {
         // Return a standard Corda Jackson object mapper, configured to use YAML by default and with extra
         // serializers.
-        return JacksonSupport.createDefaultMapper(rpcOps, YAMLFactory(), true).apply {
+        return JacksonSupport.createDefaultMapper(info, YAMLFactory(), true).apply {
             val rpcModule = SimpleModule().apply {
                 addDeserializer(InputStream::class.java, InputStreamDeserializer)
                 addDeserializer(UniqueIdentifier::class.java, UniqueIdentifierDeserializer)
+                addMixIn(Duration::class.java, InputDurationMixin::class.java)
+                addMixIn(TimeWindow::class.java, InputTimeWindowMixin::class.java)
+                addMixIn(FlowTimeWindow::class.java, InputFlowTimeWindowMixin::class.java)
             }
             registerModule(rpcModule)
         }
@@ -314,13 +330,14 @@ object InteractiveShell {
      * the [runFlowFromString] method and starts the requested flow. Ctrl-C can be used to cancel.
      */
     @JvmStatic
+    @Suppress("LongParameterList", "ComplexMethod", "NestedBlockDepth")
     fun runFlowByNameFragment(
         nameFragment: String,
         inputData: String,
         output: RenderPrintWriter,
         rpcOps: CordaRPCOps,
         ansiProgressRenderer: ANSIProgressRenderer,
-        inputObjectMapper: ObjectMapper = createYamlInputMapper(rpcOps)
+        inputObjectMapper: ObjectMapper
     ) {
         val matches = try {
             rpcOps.registeredFlows().filter { nameFragment in it }.sortedBy { it.length }
@@ -421,29 +438,35 @@ object InteractiveShell {
     }
 
     @JvmStatic
+    fun parseStateMachineRunId(id: String, output: RenderPrintWriter, inputObjectMapper: ObjectMapper): StateMachineRunId? {
+        val parsedId = try {
+            inputObjectMapper.readValue(id, StateMachineRunId::class.java)
+        } catch (e: JsonMappingException) {
+            output.println("Cannot parse flow ID of '$id' - expecting a UUID.", Decoration.bold, Color.red)
+            log.error("Failed to parse flow ID", e)
+            return null
+        }
+        //auxiliary validation - workaround for JDK8 bug https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8159339
+        if (id.length < uuidStringSize) {
+            val msg = "Flow ID of '$id' seems to be malformed - a UUID should have $uuidStringSize characters. " +
+                    "Expand the terminal window to see the full UUID value."
+            output.println(msg, Decoration.bold, Color.red)
+            log.warn(msg)
+            return null
+        }
+        return parsedId
+    }
+
+    @JvmStatic
     fun killFlowById(
         id: String,
         output: RenderPrintWriter,
         rpcOps: CordaRPCOps,
-        inputObjectMapper: ObjectMapper = createYamlInputMapper(rpcOps)
+        inputObjectMapper: ObjectMapper
     ) {
         try {
-            val runId = try {
-                inputObjectMapper.readValue(id, StateMachineRunId::class.java)
-            } catch (e: JsonMappingException) {
-                output.println("Cannot parse flow ID of '$id' - expecting a UUID.", Decoration.bold, Color.red)
-                log.error("Failed to parse flow ID", e)
-                return
-            }
-            //auxiliary validation - workaround for JDK8 bug https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8159339
-            if (id.length < uuidStringSize) {
-                val msg =
-                    "Can not kill the flow. Flow ID of '$id' seems to be malformed - a UUID should have $uuidStringSize characters. " +
-                            "Expand the terminal window to see the full UUID value."
-                output.println(msg, Decoration.bold, Color.red)
-                log.warn(msg)
-                return
-            }
+            val runId = parseStateMachineRunId(id, output, inputObjectMapper) ?: return
+
             if (rpcOps.killFlow(runId)) {
                 output.println("Killed flow $runId", Decoration.bold, Color.yellow)
             } else {
