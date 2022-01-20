@@ -1,6 +1,9 @@
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
 buildscript {
+
+    ext.cordaBuildEdition = System.getenv("CORDA_BUILD_EDITION")?.trim() ?: "Corda Open Source"
+
     repositories {
         mavenLocal()
         // Use system environment to activate caching with Artifactory,
@@ -144,7 +147,7 @@ allprojects {
         manifest {
             attributes('Corda-Release-Version': cordaReleaseVersion)
             attributes('Corda-Platform-Version': cordaPlatformVersion)
-            attributes('Corda-Vendor': 'Corda Open Source')
+            attributes('Corda-Vendor': cordaBuildEdition)
             attributes('Automatic-Module-Name': "net.corda.${task.project.name.replaceAll('-', '.')}")
         }
     }
