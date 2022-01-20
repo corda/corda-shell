@@ -11,7 +11,7 @@ boolean isEntReleaseBranch = (env.BRANCH_NAME =~ /^release\/ent\/.*/)
 boolean isOSReleaseTag = (env.BRANCH_NAME =~ /^release-OS-.*/)
 boolean isENTReleaseTag = (env.TAG_NAME =~ /^release-ENT-.*/)
 
-def buildEdition = (isOSReleaseTag) ? "Corda Community Edition" : "Corda Open Source"
+def buildEdition = "Corda Enterprise Edition"
 
 String artifactoryBuildName = "Corda-Shell"
 
