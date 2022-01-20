@@ -32,6 +32,8 @@ boolean isEntReleaseBranch = (env.BRANCH_NAME =~ /^release\/ent\/.*/)
 boolean isOSReleaseTag = (env.BRANCH_NAME =~ /^release-OS-\/.*/)
 boolean isENTReleaseTag = (env.TAG_NAME =~ /^release-ENT-.*/) 
 
+def buildEdition = "Corda Enterprise Edition"
+
 String artifactoryBuildName = "Corda-Shell"
 
 // Artifactory build info links
@@ -69,6 +71,7 @@ pipeline {
     environment {
         ARTIFACTORY_BUILD_NAME = "${artifactoryBuildName}"
         MAVEN_LOCAL_PUBLISH = "${env.WORKSPACE}/${mavenLocal}"
+        CORDA_BUILD_EDITION = "${buildEdition}"
     }
 
     stages {
