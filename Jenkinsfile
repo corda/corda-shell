@@ -72,6 +72,9 @@ pipeline {
         ARTIFACTORY_BUILD_NAME = "${artifactoryBuildName}"
         MAVEN_LOCAL_PUBLISH = "${env.WORKSPACE}/${mavenLocal}"
         CORDA_BUILD_EDITION = "${buildEdition}"
+        ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
+        CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
+        CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
     }
 
     stages {
