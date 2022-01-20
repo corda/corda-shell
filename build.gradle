@@ -2,7 +2,7 @@ import static org.gradle.api.JavaVersion.VERSION_1_8
 
 buildscript {
 
-    ext.cordaBuildEdition = System.getenv("CORDA_BUILD_EDITION")?.trim() ?: "Corda Open Source"
+    ext.cordaBuildEdition = System.getenv("CORDA_BUILD_EDITION")?.trim() ?: "Corda Enterprise Edition"
 
     repositories {
         mavenLocal()
