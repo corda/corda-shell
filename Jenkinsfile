@@ -62,8 +62,9 @@ pipeline {
         CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
         CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
         CORDA_BUILD_EDITION = "${buildEdition}"
-        CORDA_USE_CACHE = "corda-remotes"
-        SNYK_TOKEN = "c4-os-snyk-shell"
+        ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
+        CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
+        CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
         GRADLE_USER_HOME = "/host_tmp/gradle"
     }
 
