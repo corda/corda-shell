@@ -9,7 +9,7 @@ String mavenLocal = 'tmp/mavenlocal'
 
 def nexusDefaultIqStage = "build"
 
-
+def someChange = "test"
 /**
  * make sure calculated default value of NexusIQ stage is first in the list
  * thus making it default for the `choice` parameter
