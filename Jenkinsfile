@@ -29,7 +29,7 @@ boolean isRelease = (env.TAG_NAME =~ /^release-.*/)
 boolean isOSReleaseBranch = (env.BRANCH_NAME =~ /^release\/os\/.*/)
 boolean isEntReleaseBranch = (env.BRANCH_NAME =~ /^release\/ent\/.*/)
 
-boolean isOSReleaseTag = (env.BRANCH_NAME =~ /^release-OS-\/.*/)
+boolean isOSReleaseTag = (env.BRANCH_NAME =~ /^release-OS-.*/)
 boolean isENTReleaseTag = (env.TAG_NAME =~ /^release-ENT-.*/) 
 
 def buildEdition = (isOSReleaseTag) ? "Corda Community Edition" : "Corda Open Source"
