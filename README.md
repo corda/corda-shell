@@ -38,5 +38,5 @@ The shell can be used in two ways:
     When using `cordaformation` the shell can be included in generated node's by including the following in the `build.gradle` file containing `deployNodes`:
   
     ```groovy
-    cordaDriver "net.corda:corda-shell:4.9"
+    cordaDriver "com.r3.corda:corda-shell:4.9"
     ```
