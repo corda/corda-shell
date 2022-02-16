@@ -4,6 +4,15 @@ buildscript {
 
     ext.cordaBuildEdition = System.getenv("CORDA_BUILD_EDITION")?.trim() ?: "Corda Enterprise Edition"
 
+    ext.cordaRevision = {
+        try {
+            "git rev-parse HEAD".execute().text.trim()
+        } catch (Exception ignored) {
+            logger.warn("git is unavailable in build environment")
+            "unknown"
+        }
+    }()
+
     repositories {
         mavenLocal()
         // Use system environment to activate caching with Artifactory,
@@ -147,6 +156,7 @@ allprojects {
         manifest {
             attributes('Corda-Release-Version': cordaReleaseVersion)
             attributes('Corda-Platform-Version': cordaPlatformVersion)
+            attributes('Corda-Revision': cordaRevision)
             attributes('Corda-Vendor': cordaBuildEdition)
             attributes('Automatic-Module-Name': "net.corda.${task.project.name.replaceAll('-', '.')}")
         }
