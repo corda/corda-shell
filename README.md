@@ -2,12 +2,12 @@
 
 The Corda Shell is an application that allows the user to interact with a running Corda node.
 
-The shell can be used in two ways:
+The shell has 2 artifacts for each way that it can be used:
 
-- A standalone application - Run the `corda-shell` jar using:
+- A standalone application - Run the `corda-standalone-shell` jar using:
 
     ```shell
-     java -jar corda-shell-4.9.jar [-hvV] [--logging-level=<loggingLevel>] [--password=<password>]
+     java -jar corda-standalone-shell-4.9.jar [-hvV] [--logging-level=<loggingLevel>] [--password=<password>]
         [--truststore-file=<trustStoreFile>]
         [--truststore-password=<trustStorePassword>]
         [--truststore-type=<trustStoreType>] [--user=<user>] [-a=<host>]
@@ -31,6 +31,8 @@ The shell can be used in two ways:
     - `logging-level=<loggingLevel>`: Enable logging at this level and higher. Possible values: ERROR, WARN, INFO, DEBUG, TRACE. Default: INFO.
     - `help`, `-h`: Show this help message and exit.
     - `version`, `-V`: Print version information and exit.
+
+The `corda-shell` jar (not `corda-standalone-shell`) can still be used in as a standalone executable but will be missing any logging functionality.
     
 
 - A driver within a Corda node. Install the `corda-shell` jar in a node's `/drivers` directory to run the shell in the same terminal that starts the node. By default, a Corda node does not run the shell.

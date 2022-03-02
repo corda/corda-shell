@@ -1,3 +1,4 @@
 rootProject.name = 'corda-shell'
 
 include 'shell'
+include 'standalone-shell'
