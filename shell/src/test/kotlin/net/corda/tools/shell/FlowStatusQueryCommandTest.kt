@@ -2,9 +2,9 @@ package net.corda.tools.shell
 
 import com.nhaarman.mockito_kotlin.argThat
 import com.nhaarman.mockito_kotlin.mock
-import net.corda.client.jackson.JacksonSupport
 import net.corda.client.rpc.proxy.NodeFlowStatusRpcOps
 import net.corda.core.identity.CordaX500Name
+import net.corda.core.messaging.CordaRPCOps
 import net.corda.ext.api.flow.FlowStatusQueryProvider
 import net.corda.extensions.node.rpc.NodeFlowStatusRpcOpsImpl
 import net.corda.nodeapi.flow.hospital.FlowState
@@ -37,11 +37,11 @@ class FlowStatusQueryCommandTest {
         Mockito.`when`(mockInvocationContext.session).thenReturn(session)
         Mockito.`when`(session.authInfo).thenReturn(authInfo)
         val statusRpcOps = NodeFlowStatusRpcOpsImpl()
-        val partyInfoRpcOps = Mockito.mock(JacksonSupport.PartyInfoRpcOps::class.java)
+        val partyInfoRpcOps = Mockito.mock(CordaRPCOps::class.java)
         Mockito.`when`<Any>(authInfo.getOrCreateRpcOps(ArgumentMatchers.any())).thenAnswer { a: InvocationOnMock ->
             when (a.getArgument<Class<*>>(0)) {
                 NodeFlowStatusRpcOps::class.java -> return@thenAnswer statusRpcOps
-                JacksonSupport.PartyInfoRpcOps::class.java -> return@thenAnswer partyInfoRpcOps
+                CordaRPCOps::class.java -> return@thenAnswer partyInfoRpcOps
                 else -> return@thenAnswer null
             }
         }

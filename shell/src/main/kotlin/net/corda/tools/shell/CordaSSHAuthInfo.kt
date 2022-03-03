@@ -18,12 +18,13 @@ internal class CordaSSHAuthInfo(
     override fun isSuccessful(): Boolean = true
 
     /**
-     * It is necessary to have a cache to prevent creation of too many proxies for the same class. Proxy ensures that RPC connections gracefully
-     * closed when cache entry is eliminated
+     * It is necessary to have a cache to prevent creation of too many proxies for the same class.
+     * Proxy ensures that RPC connections closed when cache entry is eliminated.
      */
     private val proxiesCache = Caffeine.newBuilder()
         .maximumSize(10)
-        .removalListener(RemovalListener<Class<out RPCOps>, Pair<RPCOps, RPCConnection<RPCOps>>> { _, value, _ -> value?.second?.close() })
+        .removalListener(RemovalListener<Class<out RPCOps>, Pair<RPCOps, RPCConnection<RPCOps>>>
+            { _, value, _ -> value?.second?.forceClose() })
         .executor(MoreExecutors.directExecutor())
         .build(CacheLoader<Class<out RPCOps>, Pair<RPCOps, RPCConnection<RPCOps>>> { key -> createRpcOps(key) })
 
@@ -40,7 +41,11 @@ internal class CordaSSHAuthInfo(
     }
 
     private fun <T : RPCOps> createRpcOps(rpcOpsClass: Class<out T>): Pair<T, RPCConnection<T>> {
-        val producerResult = rpcOpsProducer(username, credential, rpcOpsClass)
+        val producerResult = rpcOpsProducer(username, credential, rpcOpsClass) {
+            // When notified about disconnect - invalidate the connection instance we have in the cache such that next time
+            // an instance of RPCOps is requested, a fresh instance will be produced.
+            proxiesCache.invalidate(rpcOpsClass)
+        }
         val anotherProxy = proxyRPCOps(producerResult.proxy, rpcOpsClass)
         return anotherProxy to producerResult
     }

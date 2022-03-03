@@ -8,11 +8,11 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import net.corda.client.jackson.JacksonSupport
 import net.corda.client.jackson.StringToClassParser
 import net.corda.client.jackson.getOrReport
 import net.corda.client.rpc.proxy.NodeFlowStatusRpcOps
 import net.corda.core.internal.VisibleForTesting
+import net.corda.core.messaging.CordaRPCOps
 import net.corda.nodeapi.flow.hospital.FlowStatusQueryV2
 import org.crsh.cli.Argument
 import org.crsh.cli.Command
@@ -60,7 +60,7 @@ internal class FlowStatusQueryCommand : MultiRpcInteractiveShellCommand() {
     )
     @SuppressWarnings("unused")
     fun queryFlows(context: InvocationContext<Map<Any, Any>>, @Argument(unquote = true) input: List<String>?) {
-        queryFlows(context.writer, input, ops(NodeFlowStatusRpcOps::class.java), ops(JacksonSupport.PartyInfoRpcOps::class.java))
+        queryFlows(context.writer, input, ops(NodeFlowStatusRpcOps::class.java), ops(CordaRPCOps::class.java))
     }
 
     @Command
@@ -84,7 +84,7 @@ internal class FlowStatusQueryCommand : MultiRpcInteractiveShellCommand() {
             }
         }
 
-        fun queryFlows(writer: PrintWriter, input: List<String>?, ops: NodeFlowStatusRpcOps, partyOps: JacksonSupport.PartyInfoRpcOps) {
+        fun queryFlows(writer: PrintWriter, input: List<String>?, ops: NodeFlowStatusRpcOps, partyOps: CordaRPCOps) {
             val query = StringToClassParser(FlowStatusQueryV2::class.java)
                 .parse(input.flattenInput(), InteractiveShell.createYamlInputMapper(partyOps))
                 .getOrReport(writer)
