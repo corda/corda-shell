@@ -1,0 +1,59 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '5.2.0' apply false
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'net.corda.plugins.quasar-utils'
+apply plugin: 'net.corda.plugins.publish-utils'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
+
+// We need to set mainClassName before applying the shadow plugin.
+mainClassName = 'net.corda.tools.shell.standalone.StandaloneShellKt'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+description 'Corda Standalone Shell'
+
+configurations {
+    cordaShellDependencies {}
+}
+
+dependencies {
+    compile project(":shell")
+    compile files(project(":shell").sourceSets.main.output)
+    compile "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // Resolves a Gradle warning about not scanning for pre-processors.
+    options.compilerArgs << '-proc:none'
+}
+
+jar {
+    enabled = false
+    archiveClassifier = 'ignore'
+}
+
+shadowJar {
+    archiveBaseName = 'corda-standalone-shell'
+    archiveClassifier = ''
+    mergeServiceFiles()
+    manifest {
+        attributes "Corda-Release-Version": cordaReleaseVersion
+        attributes('Corda-Platform-Version': cordaPlatformVersion)
+        attributes "Corda-Vendor": cordaBuildEdition
+    }
+}
+
+artifacts {
+    archives shadowJar
+    publish shadowJar
+}
+
+publish {
+    dependenciesFrom configurations.cordaShellDependencies
+    name shadowJar.archiveBaseName
+    disableDefaultJar = true
+}
