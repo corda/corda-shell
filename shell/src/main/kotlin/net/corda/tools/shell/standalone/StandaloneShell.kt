@@ -7,6 +7,7 @@ import net.corda.cliutils.start
 import net.corda.core.internal.exists
 import net.corda.core.internal.isRegularFile
 import net.corda.core.internal.list
+import net.corda.core.utilities.contextLogger
 import net.corda.tools.shell.InteractiveShell
 import net.corda.tools.shell.ShellConfiguration
 import org.fusesource.jansi.Ansi
@@ -29,6 +30,8 @@ fun main(args: Array<String>) {
 class StandaloneShell : CordaCliWrapper("corda-shell", "The Corda standalone shell.") {
 
     private companion object {
+        private val logger by lazy { contextLogger() }
+
         val logo = """
 R   ______               __
 R  / ____/     _________/ /___ _
@@ -97,8 +100,10 @@ D""".trimStart()
         InteractiveShell.startShell(configuration, classLoader, true)
         try {
             //connecting to node by requesting node info to fail fast
-            InteractiveShell.nodeInfo()
+            val nodeInfo = InteractiveShell.nodeInfo()
+            logger.info("Connected to ${nodeInfo.legalIdentities.first().name} at ${configuration.hostAndPort}")
         } catch (e: Exception) {
+            logger.error("Cannot login to ${configuration.hostAndPort}, reason: \"${e.message}\"")
             println("Cannot login to ${configuration.hostAndPort}, reason: \"${e.message}\"")
             return ExitCodes.FAILURE
         }
