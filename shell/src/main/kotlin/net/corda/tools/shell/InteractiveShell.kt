@@ -282,7 +282,7 @@ object InteractiveShell {
         return outputFormat
     }
 
-    fun createYamlInputMapper(info: JacksonSupport.PartyInfoRpcOps): ObjectMapper {
+    fun createYamlInputMapper(info: CordaRPCOps): ObjectMapper {
         // Return a standard Corda Jackson object mapper, configured to use YAML by default and with extra
         // serializers.
         return JacksonSupport.createDefaultMapper(info, YAMLFactory(), true).apply {

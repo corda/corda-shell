@@ -1,7 +1,7 @@
 package net.corda.tools.shell
 
-import net.corda.client.jackson.JacksonSupport
 import net.corda.client.rpc.proxy.NodeFlowStatusRpcOps
+import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.utilities.ProgressTracker
 import net.corda.nodeapi.flow.hospital.FlowCordappContext
 import net.corda.nodeapi.flow.hospital.FlowInfo
@@ -74,7 +74,7 @@ class FlowStatusCommandTest {
         val hospitaliseId = UUID.randomUUID()
         val failId = UUID.randomUUID()
         val ops = Mockito.mock(NodeFlowStatusRpcOps::class.java)
-        val partyOps = Mockito.mock(JacksonSupport.PartyInfoRpcOps::class.java)
+        val partyOps = Mockito.mock(CordaRPCOps::class.java)
         Mockito.`when`(ops.getFlowsMatchingV2(FlowStatusQueryV2(flowStates = listOf(FlowState.HOSPITALIZED))))
             .thenReturn(
                 listOf(hospitaliseId.toString().toLowerCase())
@@ -126,7 +126,7 @@ class FlowStatusCommandTest {
         val cordappId = "test-cordapp-id"
         val id = UUID.randomUUID()
         val ops = Mockito.mock(NodeFlowStatusRpcOps::class.java)
-        val partyOps = Mockito.mock(JacksonSupport.PartyInfoRpcOps::class.java)
+        val partyOps = Mockito.mock(CordaRPCOps::class.java)
         Mockito.`when`(ops.getFlowsMatchingV2(FlowStatusQueryV2(cordapp = cordappId)))
             .thenReturn(
                 listOf(id.toString().toLowerCase())
@@ -144,7 +144,7 @@ class FlowStatusCommandTest {
         input: List<String>,
         expected: String,
         mustExclude: String? = null,
-        partyOps: JacksonSupport.PartyInfoRpcOps
+        partyOps: CordaRPCOps
     ) {
         val arrayWriter = CharArrayWriter()
         val response = PrintWriter(arrayWriter).use {

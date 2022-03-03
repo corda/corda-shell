@@ -15,7 +15,6 @@ import net.corda.core.contracts.*
 import net.corda.core.crypto.SecureHash
 import net.corda.core.flows.*
 import net.corda.core.identity.AbstractParty
-import net.corda.core.identity.CordaX500Name
 import net.corda.core.identity.Party
 import net.corda.core.internal.concurrent.transpose
 import net.corda.core.internal.createDirectories
@@ -25,7 +24,6 @@ import net.corda.core.internal.list
 import net.corda.core.messaging.ClientRpcSslOptions
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.messaging.startFlow
-import net.corda.core.node.NodeInfo
 import net.corda.core.node.ServiceHub
 import net.corda.core.transactions.LedgerTransaction
 import net.corda.core.transactions.SignedTransaction
@@ -67,7 +65,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.rules.TemporaryFolder
-import java.security.PublicKey
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Semaphore
@@ -79,25 +76,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class InteractiveShellIntegrationTest {
-
-    class PartyInfoRpcOpsWrapper(
-        private val cordaRPCOps: CordaRPCOps
-    ) : JacksonSupport.PartyInfoRpcOps {
-        override val protocolVersion: Int
-            get() = cordaRPCOps.protocolVersion
-
-        override fun nodeInfoFromParty(party: AbstractParty): NodeInfo? =
-            cordaRPCOps.nodeInfoFromParty(party)
-
-        override fun partiesFromName(query: String, exactMatch: Boolean): Set<Party> =
-            cordaRPCOps.partiesFromName(query, exactMatch)
-
-        override fun partyFromKey(key: PublicKey): Party? =
-            cordaRPCOps.partyFromKey(key)
-
-        override fun wellKnownPartyFromX500Name(name: CordaX500Name): Party? =
-            cordaRPCOps.wellKnownPartyFromX500Name(name)
-    }
 
     @Rule
     @JvmField
@@ -278,7 +256,7 @@ class InteractiveShellIntegrationTest {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
             startShell(node)
             val (output, lines) = mockRenderPrintWriter()
-            val om = InteractiveShell.createYamlInputMapper(PartyInfoRpcOpsWrapper(node.rpc))
+            val om = InteractiveShell.createYamlInputMapper(node.rpc)
             InteractiveShell.runFlowByNameFragment(NoOpFlow::class.java.name, "", output, node.rpc, mockAnsiProgressRenderer(), om)
             assertThat(lines.last()).startsWith("Flow completed with result:")
         }
@@ -291,7 +269,7 @@ class InteractiveShellIntegrationTest {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
             startShell(node)
             val (output, lines) = mockRenderPrintWriter()
-            val om = InteractiveShell.createYamlInputMapper(PartyInfoRpcOpsWrapper(node.rpc))
+            val om = InteractiveShell.createYamlInputMapper(node.rpc)
             InteractiveShell.runFlowByNameFragment("NoOpFlowA", "", output, node.rpc, mockAnsiProgressRenderer(), om)
             assertThat(lines.last()).startsWith("Flow completed with result:")
         }
@@ -304,7 +282,7 @@ class InteractiveShellIntegrationTest {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
             startShell(node)
             val (output, lines) = mockRenderPrintWriter()
-            val om = InteractiveShell.createYamlInputMapper(PartyInfoRpcOpsWrapper(node.rpc))
+            val om = InteractiveShell.createYamlInputMapper(node.rpc)
             InteractiveShell.runFlowByNameFragment("NoOpFlo", "", output, node.rpc, mockAnsiProgressRenderer(), om)
             assertThat(lines.any { it.startsWith("Ambiguous name provided, please be more specific.") }).isTrue()
         }
@@ -317,7 +295,7 @@ class InteractiveShellIntegrationTest {
             val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
             startShell(node)
             val (output, lines) = mockRenderPrintWriter()
-            val om = InteractiveShell.createYamlInputMapper(PartyInfoRpcOpsWrapper(node.rpc))
+            val om = InteractiveShell.createYamlInputMapper(node.rpc)
             InteractiveShell.runFlowByNameFragment("Burble", "", output, node.rpc, mockAnsiProgressRenderer(), om)
             assertThat(lines.last()).startsWith("Flow completed with result")
         }

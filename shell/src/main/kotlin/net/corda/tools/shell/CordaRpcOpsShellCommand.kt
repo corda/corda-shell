@@ -2,7 +2,6 @@ package net.corda.tools.shell
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.type.TypeFactory
-import net.corda.client.jackson.JacksonSupport
 import net.corda.core.messaging.CordaRPCOps
 
 internal abstract class CordaRpcOpsShellCommand : InteractiveShellCommand<CordaRPCOps>() {
@@ -17,7 +16,7 @@ internal abstract class CordaRpcOpsShellCommand : InteractiveShellCommand<CordaR
     }
 
     private fun createYamlInputMapper(): ObjectMapper {
-        val rpcOps = ops(JacksonSupport.PartyInfoRpcOps::class.java)
+        val rpcOps = ops()
         return InteractiveShell.createYamlInputMapper(rpcOps)
     }
 }
