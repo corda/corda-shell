@@ -28,7 +28,8 @@ fun main(args: Array<String>) {
 }
 
 class StandaloneShell : CordaCliWrapper("corda-shell", "The Corda standalone shell.") {
-    companion object {
+
+    private companion object {
         private val logger by lazy { contextLogger() }
 
         val logo = """
