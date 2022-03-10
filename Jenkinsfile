@@ -64,9 +64,6 @@ pipeline {
         booleanParam defaultValue: (isReleaseBranch || isRelease), description: 'Publish artifacts to Artifactory?', name: 'DO_PUBLISH'
     }
 
-    triggers {
-        cron '@midnight'
-    }
 
     environment {
         ARTIFACTORY_BUILD_NAME = "${artifactoryBuildName}"
