@@ -65,7 +65,7 @@ pipeline {
     }
 
     triggers {
-        cron '@midnight'
+        cron(isReleaseBranch ? '@midnight' : '')
     }
 
     environment {
