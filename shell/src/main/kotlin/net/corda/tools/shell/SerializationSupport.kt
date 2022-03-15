@@ -10,6 +10,7 @@ import com.google.common.io.Closeables
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.internal.copyTo
 import net.corda.core.internal.inputStream
+import net.corda.core.internal.readAll
 import org.crsh.command.InvocationContext
 import rx.Observable
 import java.io.BufferedInputStream
@@ -73,23 +74,9 @@ object InputStreamSerializer : JsonSerializer<InputStream>() {
 
 // A file name is deserialized to an InputStream if found.
 object InputStreamDeserializer : JsonDeserializer<InputStream>() {
-    // Keep track of them so we can close them later.
-    private val streams = Collections.synchronizedSet(HashSet<InputStream>())
-
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): InputStream {
-        val stream = object : BufferedInputStream(Paths.get(p.text).inputStream()) {
-            override fun close() {
-                super.close()
-                streams.remove(this)
-            }
-        }
-        streams += stream
+        val stream = Paths.get(p.text).readAll().inputStream()
         return stream
-    }
-
-    fun closeAll() {
-        // Clone the set with toList() here so each closed stream can be removed from the set inside close().
-        streams.toList().forEach { Closeables.closeQuietly(it) }
     }
 }
 //endregion

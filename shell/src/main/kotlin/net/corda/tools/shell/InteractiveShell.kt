@@ -378,8 +378,6 @@ object InteractiveShell {
             output.println(e.message ?: "Access denied", Decoration.bold, Color.red)
         } catch (e: ExecutionException) {
             // ignoring it as already logged by the progress handler subscriber
-        } finally {
-            InputStreamDeserializer.closeAll()
         }
     }
 
@@ -636,7 +634,6 @@ object InteractiveShell {
             out.println("RPC failed: ${e.rootCause}", Decoration.bold, Color.red)
         } finally {
             InputStreamSerializer.invokeContext = null
-            InputStreamDeserializer.closeAll()
         }
         return result
     }
@@ -697,7 +694,6 @@ object InteractiveShell {
             result = 1
         } finally {
             InputStreamSerializer.invokeContext = null
-            InputStreamDeserializer.closeAll()
         }
         return result;
     }
