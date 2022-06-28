@@ -76,10 +76,10 @@ pipeline {
             }
             steps {
                 script {
-                    // Invoke Snyk for each Gradle sub project we wish to scan
-                    def modulesToScan = ['standalone-shell', 'shell']
-                    modulesToScan.each { module ->
-                        snykSecurityScan(env.SNYK_TOKEN, "--sub-project=$module --configuration-matching='^runtimeClasspath\$' --prune-repeated-subdependencies --debug --target-reference='${env.BRANCH_NAME}' --project-tags=Branch='${env.BRANCH_NAME.replaceAll("[^0-9|a-z|A-Z]+","_")}'")
+                        sh 'rm -rf $MAVEN_LOCAL_PUBLISH'
+                        sh 'mkdir -p $MAVEN_LOCAL_PUBLISH'
+                        sh './gradlew publishToMavenLocal -Dmaven.repo.local="${MAVEN_LOCAL_PUBLISH}" -x :shell:javadoc' 
+                        sh 'ls -lR "${MAVEN_LOCAL_PUBLISH}"'
                     }
                 }
             }
@@ -88,7 +88,7 @@ pipeline {
         stage('Build') {
             steps {
                 script{
-                    sh "./gradlew clean assemble -Si"
+                    sh "./gradlew clean assemble -Si -x :shell:javadoc"
                 }
             }
         }
@@ -144,7 +144,7 @@ pipeline {
                             rtGradleRun (
                                     usesPlugin: true,
                                     useWrapper: true,
-                                    switches: "--no-daemon -Si",
+                                    switches: "--no-daemon -Si -x :shell:javadoc",
                                     tasks: 'artifactoryPublish',
                                     deployerId: 'deployer',
                                     buildName: env.ARTIFACTORY_BUILD_NAME
