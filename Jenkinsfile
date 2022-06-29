@@ -9,6 +9,8 @@ String mavenLocal = 'tmp/mavenlocal'
 
 def nexusDefaultIqStage = "build"
 
+def extraGradleCommands = '-x :shell:javadoc'
+
 
 /**
  * make sure calculated default value of NexusIQ stage is first in the list
@@ -83,7 +85,7 @@ pipeline {
                 script {
                         sh 'rm -rf $MAVEN_LOCAL_PUBLISH'
                         sh 'mkdir -p $MAVEN_LOCAL_PUBLISH'
-                        sh './gradlew publishToMavenLocal -Dmaven.repo.local="${MAVEN_LOCAL_PUBLISH}"' 
+                        sh "./gradlew publishToMavenLocal -Dmaven.repo.local=${MAVEN_LOCAL_PUBLISH} ${extraGradleCommands}" 
                         sh 'ls -lR "${MAVEN_LOCAL_PUBLISH}"'
 
                     }
@@ -122,7 +124,7 @@ pipeline {
         stage('Build') {
             steps {
                 script{
-                    sh "./gradlew clean assemble -Si"
+                    sh "./gradlew clean assemble -Si ${extraGradleCommands}"
                 }
             }
         }
@@ -176,7 +178,7 @@ pipeline {
                             rtGradleRun (
                                     usesPlugin: true,
                                     useWrapper: true,
-                                    switches: "--no-daemon -Si",
+                                    switches: "--no-daemon -Si ${extraGradleCommands}",
                                     tasks: 'artifactoryPublish',
                                     deployerId: 'deployer',
                                     buildName: env.ARTIFACTORY_BUILD_NAME
