@@ -72,6 +72,7 @@ pipeline {
         ARTIFACTORY_BUILD_NAME = "${artifactoryBuildName}"
         MAVEN_LOCAL_PUBLISH = "${env.WORKSPACE}/${mavenLocal}"
         CORDA_BUILD_EDITION = "${buildEdition}"
+        CORDA_USE_CACHE = "corda-remotes"
     }
 
     stages {
