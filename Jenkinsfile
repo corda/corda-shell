@@ -1,20 +1,38 @@
 @Library('corda-shared-build-pipeline-steps')
 import static com.r3.build.BuildControl.killAllExistingBuildsForJob
+import groovy.transform.Field
 
 killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
 
-def extraGradleCommands = '-x :shell:javadoc'
+@Field
+String mavenLocal = 'tmp/mavenlocal'
 
+def nexusDefaultIqStage = "build"
+
+
+/**
+ * make sure calculated default value of NexusIQ stage is first in the list
+ * thus making it default for the `choice` parameter
+ */
+def nexusIqStageChoices = [nexusDefaultIqStage].plus(
+                [
+                        'develop',
+                        'build',
+                        'stage-release',
+                        'release',
+                        'operate'
+                ].minus([nexusDefaultIqStage]))
+                
 boolean isReleaseBranch = (env.BRANCH_NAME =~ /^release\/.*/)
-boolean isRelease = (env.TAG_NAME =~ /^release-.*/)
+boolean isRelease = (env.TAG_NAME =~ /^release-.*/) 
 
 boolean isOSReleaseBranch = (env.BRANCH_NAME =~ /^release\/os\/.*/)
 boolean isEntReleaseBranch = (env.BRANCH_NAME =~ /^release\/ent\/.*/)
 
 boolean isOSReleaseTag = (env.BRANCH_NAME =~ /^release-OS-.*/)
-boolean isENTReleaseTag = (env.TAG_NAME =~ /^release-ENT-.*/)
+boolean isENTReleaseTag = (env.TAG_NAME =~ /^release-ENT-.*/) 
 
-def buildEdition = "Corda Enterprise Edition"
+def buildEdition = (isOSReleaseTag) ? "Corda Community Edition" : "Corda Open Source"
 
 String artifactoryBuildName = "Corda-Shell"
 
@@ -42,6 +60,7 @@ pipeline {
     }
 
     parameters {
+        choice choices: nexusIqStageChoices, description: 'NexusIQ stage for code evaluation', name: 'nexusIqStage'
         booleanParam defaultValue: (isReleaseBranch || isRelease), description: 'Publish artifacts to Artifactory?', name: 'DO_PUBLISH'
     }
 
@@ -53,34 +72,55 @@ pipeline {
         ARTIFACTORY_BUILD_NAME = "${artifactoryBuildName}"
         MAVEN_LOCAL_PUBLISH = "${env.WORKSPACE}/${mavenLocal}"
         CORDA_BUILD_EDITION = "${buildEdition}"
-        ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
-        CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
-        CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
         CORDA_USE_CACHE = "corda-remotes"
-        SNYK_TOKEN = "c4-ent-snyk-shell"
     }
 
     stages {
-
-        stage('Snyk Security') {
-            when {
-                expression { isRelease || isReleaseBranch }
-            }
+        stage('Local Publish') {
             steps {
                 script {
-                    // Invoke Snyk for each Gradle sub project we wish to scan
-                    def modulesToScan = ['standalone-shell', 'shell']
-                    modulesToScan.each { module ->
-                        snykSecurityScan(env.SNYK_TOKEN, "--sub-project=$module --configuration-matching='^runtimeClasspath\$' --prune-repeated-subdependencies --debug --target-reference='${env.BRANCH_NAME}' --project-tags=Branch='${env.BRANCH_NAME.replaceAll("[^0-9|a-z|A-Z]+","_")}'")
+                        sh 'rm -rf $MAVEN_LOCAL_PUBLISH'
+                        sh 'mkdir -p $MAVEN_LOCAL_PUBLISH'
+                        sh './gradlew publishToMavenLocal -Dmaven.repo.local="${MAVEN_LOCAL_PUBLISH}"' 
+                        sh 'ls -lR "${MAVEN_LOCAL_PUBLISH}"'
+
                     }
                 }
             }
+
+        stage('Sonatype Check') {
+            steps {
+                
+              script{
+                    def props = readProperties file: 'gradle.properties'
+                    version = props['cordaShellReleaseVersion']
+                    groupId = props['cordaReleaseGroup']
+                    def artifactId = 'corda-shell'
+                    nexusAppId = "${groupId}-${artifactId}-${version}"
+                    echo "${groupId}-${artifactId}-${version}"                  
+              }
+                        
+                dir(mavenLocal) {                        
+                        script {
+                            fileToScan = findFiles(
+                                excludes: '**/*-javadoc.jar',
+                                glob: '**/*.jar, **/*.zip'
+                            ).collect { f -> [scanPattern: f.path] }
+                        }
+                        nexusPolicyEvaluation(
+                            failBuildOnNetworkError: true,
+                            iqApplication: nexusAppId, // application *has* to exist before a build starts!
+                            iqScanPatterns: fileToScan,
+                            iqStage:  params.nexusIqStage
+                        )
+                }
+             }
         }
 
         stage('Build') {
             steps {
                 script{
-                    sh "./gradlew clean assemble -Si ${extraGradleCommands}"
+                    sh "./gradlew clean assemble -Si"
                 }
             }
         }
@@ -105,8 +145,6 @@ pipeline {
             }
             steps {
                 script{
-                        def props = readProperties file: 'gradle.properties'
-                        def groupId = props['cordaReleaseGroup']
                         boolean isOpenSource = groupId.equals("net.corda") ? true : false
                         def snapshotRepo
                         def releasesRepo
@@ -136,7 +174,7 @@ pipeline {
                             rtGradleRun (
                                     usesPlugin: true,
                                     useWrapper: true,
-                                    switches: "--no-daemon -Si ${extraGradleCommands}",
+                                    switches: "--no-daemon -Si",
                                     tasks: 'artifactoryPublish',
                                     deployerId: 'deployer',
                                     buildName: env.ARTIFACTORY_BUILD_NAME
