@@ -67,7 +67,7 @@ pipeline {
     }
 
     triggers {
-        cron '@midnight'
+        cron (isReleaseBranch ? '@midnight' : '')
     }
 
     environment {
@@ -77,6 +77,7 @@ pipeline {
         ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
         CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
         CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
+        CORDA_USE_CACHE = "corda-remotes"
     }
 
     stages {
