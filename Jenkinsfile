@@ -78,7 +78,7 @@ pipeline {
         CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
         CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
         CORDA_USE_CACHE = "corda-remotes"
-        SNYK_TOKEN  = credentials('c4-ent-snyk-shell')
+        SNYK_API_KEY = "c4-ent-snyk-shell"
     }
 
     stages {
