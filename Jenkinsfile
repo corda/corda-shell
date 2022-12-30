@@ -122,9 +122,9 @@ pipeline {
         }
 
         stage('Snyk Security') {
-            // when {
-            //     expression { isRelease || isReleaseBranch }
-            // }
+            when {
+                expression { isRelease || isReleaseBranch }
+            }
             steps {
                 script {
                     // Invoke Snyk for each Gradle sub project we wish to scan
