@@ -76,7 +76,7 @@ pipeline {
         CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
         CORDA_BUILD_EDITION = "${buildEdition}"
         CORDA_USE_CACHE = "corda-remotes"
-        SNYK_API_KEY = "c4-os-snyk-shell"
+        SNYK_TOKEN = "c4-os-snyk-shell"
     }
 
     stages {
@@ -130,7 +130,7 @@ pipeline {
                     // Invoke Snyk for each Gradle sub project we wish to scan
                     def modulesToScan = ['standalone-shell', 'shell']
                     modulesToScan.each { module ->
-                        snykSecurityScan(env.SNYK_API_KEY, "--sub-project=$module --configuration-matching='^runtimeClasspath\$' --prune-repeated-subdependencies --debug --target-reference='${env.BRANCH_NAME}' --project-tags=Branch='${env.BRANCH_NAME.replaceAll("[^0-9|a-z|A-Z]+","_")}'")
+                        snykSecurityScan(env.SNYK_TOKEN, "--sub-project=$module --configuration-matching='^runtimeClasspath\$' --prune-repeated-subdependencies --debug --target-reference='${env.BRANCH_NAME}' --project-tags=Branch='${env.BRANCH_NAME.replaceAll("[^0-9|a-z|A-Z]+","_")}'")
                     }
                 }
             }
