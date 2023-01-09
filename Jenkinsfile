@@ -92,9 +92,41 @@ pipeline {
                 script {
                         sh 'rm -rf $MAVEN_LOCAL_PUBLISH'
                         sh 'mkdir -p $MAVEN_LOCAL_PUBLISH'
-                        sh "./gradlew publishToMavenLocal -Dmaven.repo.local=${MAVEN_LOCAL_PUBLISH} ${extraGradleCommands}" 
+                        sh "./gradlew publishToMavenLocal -Dmaven.repo.local=${MAVEN_LOCAL_PUBLISH} ${extraGradleCommands}"
                         sh 'ls -lR "${MAVEN_LOCAL_PUBLISH}"'
                     }
+                }
+            }
+
+        stage('Sonatype Check') {
+            when {
+                not {
+                    changeRequest()
+                }
+            }
+            steps {
+                script {
+                    def props = readProperties file: 'gradle.properties'
+                    version = props['cordaShellReleaseVersion']
+                    groupId = props['cordaReleaseGroup']
+                    def artifactId = 'corda-shell'
+                    nexusAppId = "${groupId}-${artifactId}-${version}"
+                    echo "${groupId}-${artifactId}-${version}"
+                }
+
+                dir(mavenLocal) {
+                    script {
+                        fileToScan = findFiles(
+                            excludes: '**/*-javadoc.jar',
+                            glob: '**/*.jar, **/*.zip'
+                        ).collect { f -> [scanPattern: f.path] }
+                    }
+                    nexusPolicyEvaluation(
+                        failBuildOnNetworkError: true,
+                        iqApplication: nexusAppId, // application *has* to exist before a build starts!
+                        iqScanPatterns: fileToScan,
+                        iqStage: params.nexusIqStage
+                    )
                 }
             }
         }
