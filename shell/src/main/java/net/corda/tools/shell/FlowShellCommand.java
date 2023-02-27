@@ -189,12 +189,12 @@ public class FlowShellCommand extends CordaRpcOpsShellCommand {
 
     @Command
     @Usage("Recover a finality flow by flow uuid.")
-    public void recover(
+    public void recoverFinality(
             @Usage("The UUID for the flow that we wish to recover") @Argument String id,
             @Usage("Flag to force recovery of flows that are in a HOSPITALIZED or PAUSED state.")
             @Option(names = { "f", "force-recover" }) Boolean forceRecover
     ) {
-        logger.info("Executing command \"flow recover {}\".", id);
+        logger.info("Executing command \"flow recoverFinality {}\".", id);
         StateMachineRunId parsedId = parseStateMachineRunId(id, out, objectMapper(null));
 
         Boolean recoveryResult;
@@ -212,12 +212,12 @@ public class FlowShellCommand extends CordaRpcOpsShellCommand {
 
     @Command
     @Usage("Recover a finality flow by transaction id.")
-    public void recoverByTxnId(
+    public void recoverFinalityByTxnId(
             @Usage("The SecureHash of the transaction that we wish to recover") @Argument String id,
             @Usage("Flag to force recovery of flows that are in a HOSPITALIZED or PAUSED state.")
             @Option(names = { "f", "force-recover" }) Boolean forceRecover
     ) {
-        logger.info("Executing command \"flow recoverByTxnId {}\".", id);
+        logger.info("Executing command \"flow recoverFinalityByTxnId {}\".", id);
         SecureHash txIdHashParsed;
         try {
             txIdHashParsed = SecureHash.create(id);
@@ -239,11 +239,11 @@ public class FlowShellCommand extends CordaRpcOpsShellCommand {
 
     @Command
     @Usage("Recover all finality flows that have failed on this node.")
-    public void recoverAll(
+    public void recoverAllFinality(
         @Usage("Flag to force recovery of flows that are in a HOSPITALIZED or PAUSED state.")
         @Option(names = { "f", "force-recover" }) Boolean forceRecover
     ) {
-        logger.info("Executing command \"flow recoverAll {}\".");
+        logger.info("Executing command \"flow recoverAllFinality {}\".");
 
         Map<StateMachineRunId, Boolean> recoveredFlows;
         if (forceRecover != null)
@@ -267,13 +267,13 @@ public class FlowShellCommand extends CordaRpcOpsShellCommand {
             "\t\tinitiatedBy: String [X509 name, like O=PartyA,L=London,C=GB] - the name of the party that initiated the flow\n" +
             "\t\tcounterParties: String [X509 name, like O=PartyA,L=London,C=GB] - the name of any counter party peers receiving the flow, , can be specified as an array like [\"O=PartyA,L=London,C=GB\", \"O=PartyB,L=London,C=GB\"]\n"
     )
-    public void recoverMatching(
+    public void recoverFinalityMatching(
         InvocationContext<Map> context,
         @Argument(unquote = true) List<String> input,
         @Usage("Flag to force recovery of flows that are in a HOSPITALIZED or PAUSED state.")
         @Option(names = { "f", "force-recover" }) Boolean forceRecover
     ) {
-        logger.info("Executing command \"flow recoverMatching {}\".");
+        logger.info("Executing command \"flow recoverFinalityMatching {}\".");
 
         Map<StateMachineRunId, Boolean> recoveredFlows;
         if (forceRecover != null)

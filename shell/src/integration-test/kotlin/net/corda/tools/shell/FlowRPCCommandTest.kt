@@ -1,7 +1,7 @@
 package net.corda.tools.shell
 
 import co.paralleluniverse.fibers.Suspendable
-import net.corda.core.CordaRuntimeException
+import net.corda.core.contracts.PartyAndReference
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.crypto.SecureHash
 import net.corda.core.flows.*
@@ -9,21 +9,19 @@ import net.corda.core.identity.Party
 import net.corda.core.messaging.startFlow
 import net.corda.core.messaging.startTrackedFlow
 import net.corda.core.transactions.SignedTransaction
-import net.corda.core.transactions.TransactionBuilder
+import net.corda.core.utilities.OpaqueBytes
 import net.corda.core.utilities.getOrThrow
 import net.corda.core.utilities.millis
 import net.corda.failingflows.workflows.HospitalizerFlow
 import net.corda.node.services.Permissions
 import net.corda.testing.contracts.DummyContract
-import net.corda.testing.contracts.DummyState
 import net.corda.testing.core.ALICE_NAME
 import net.corda.testing.core.BOB_NAME
 import net.corda.testing.driver.DriverParameters
-import net.corda.testing.driver.NodeParameters
 import net.corda.testing.driver.driver
-import net.corda.testing.node.TestCordapp
 import net.corda.testing.node.User
 import net.corda.testing.node.internal.cordappWithPackages
+import net.corda.testing.node.internal.findCordapp
 import org.junit.Test
 import java.time.Duration
 import java.util.*
@@ -31,6 +29,7 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeoutException
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.fail
 
 @SuppressWarnings("TooGenericExceptionCaught")
 class FlowRPCCommandTest : CommandTestBase() {
@@ -105,35 +104,33 @@ class FlowRPCCommandTest : CommandTestBase() {
     @Test(timeout = 300_000)
     fun `A finality flow can be recovered via the shell`() {
         val user = User("username", "password", setOf(Permissions.all()))
-        driver(DriverParameters(cordappsForAllNodes = listOf(customCordapp))) {
-            val alice =
-                startNode(providedName = ALICE_NAME, rpcUsers = listOf(user),
-                    defaultParameters = NodeParameters(additionalCordapps =
-                        setOf(TestCordapp.findCordapp("net.corda.testing.contracts"))),
-                    startInSameProcess = true).getOrThrow()
-            val bob =
-                startNode(providedName = BOB_NAME, rpcUsers = listOf(user), startInSameProcess = true).getOrThrow()
-            PauseFlow.beforePause = Semaphore(0)
-            val handle = alice.rpc.startFlow(::CreateTransactionFlow, bob.nodeInfo.legalIdentities.first())
-            val id = handle.id
-            try { handle.returnValue.getOrThrow() }
+        driver(DriverParameters(cordappsForAllNodes = listOf(customCordapp, findCordapp("net.corda.testing.contracts"))
+        )) {
+            val alice = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user), startInSameProcess = true).getOrThrow()
+            val bob = startNode(providedName = BOB_NAME, rpcUsers = listOf(user), startInSameProcess = true).getOrThrow()
+            val stateAndRef = alice.rpc.startFlow(::IssueFlow, defaultNotaryIdentity).returnValue.getOrThrow()
+            val handle = alice.rpc.startFlow(::TransferFlow, stateAndRef, bob.nodeInfo.legalIdentities.first())
+            try {
+                handle.returnValue.getOrThrow()
+                fail()
+            }
             catch (e: FinalityFlowException) {
-                println(e.message)
+                println("FinalityFlowException: $${e.message}")
                 val session = connectToShell(user, alice)
-//            testCommand(
-//                session,
-//                command = "flowStatus queryById ${id.uuid.toString().toLowerCase()}",
-//                expected = "PAUSED"
-//            )
-//            testCommand(
-//                session,
-//                command = "flow recover ${id.uuid.toString().toLowerCase()}",
-//                expected = "Recovered finality flow $id"
-//            )
                 testCommand(
                     session,
-                    command = "flow recoverByTxnId ${e.txnId}",
-                    expected = "Recovered finality flow $id"
+                    command = "flowStatus queryFinalityById ${e.flowId}",
+                    expected = ""
+                )
+                testCommand(
+                    session,
+                    command = "flowStatus queryFinalityByTxnId ${e.txnId}",
+                    expected = ""
+                )
+                testCommand(
+                    session,
+                    command = "flow recoverFinalityByTxnId ${e.txnId}",
+                    expected = "Recovered finality flow ${e.txnId}"
                 )
             }
         }
@@ -152,39 +149,32 @@ class FlowRPCCommandTest : CommandTestBase() {
         }
     }
 
-    @InitiatingFlow
     @StartableByRPC
-    class CreateTransactionFlow(private val peer: Party) : FlowLogic<StateAndRef<DummyState>>() {
+    class IssueFlow(val notary: Party) : FlowLogic<StateAndRef<DummyContract.SingleOwnerState>>() {
+
         @Suspendable
-        override fun call(): StateAndRef<DummyState> {
-            val tx = TransactionBuilder(serviceHub.networkMapCache.notaryIdentities.first()).apply {
-                addOutputState(DummyState(participants = listOf(ourIdentity)))
-                addCommand(DummyContract.Commands.Create(), listOf(ourIdentity.owningKey, peer.owningKey))
-            }
-            val stx = serviceHub.signInitialTransaction(tx)
-            val session = initiateFlow(peer)
-            try {
-                val ftx = subFlow(CollectSignaturesFlow(stx, listOf(session)))
-                subFlow(FinalityFlow(ftx, session))
-                return ftx.coreTransaction.outRef(0)
-            }
-            catch (e: UnexpectedFlowEndException) {
-                throw FinalityFlowException(stx.id, runId.uuid)
-            }
+        override fun call(): StateAndRef<DummyContract.SingleOwnerState> {
+            val partyAndReference = PartyAndReference(ourIdentity, OpaqueBytes.of(1))
+            val txBuilder = DummyContract.generateInitial(Random().nextInt(), notary, partyAndReference)
+            val signedTransaction = serviceHub.signInitialTransaction(txBuilder, ourIdentity.owningKey)
+            val notarised = subFlow(FinalityFlow(signedTransaction, emptySet<FlowSession>()))
+            return notarised.coreTransaction.outRef(0)
         }
     }
 
-    @InitiatedBy(CreateTransactionFlow::class)
-    class CreateTransactionResponderFlow(private val session: FlowSession) : FlowLogic<Unit>() {
+    @InitiatingFlow
+    @StartableByRPC
+    class TransferFlow(private val stateAndRef: StateAndRef<DummyContract.SingleOwnerState>, private val newOwner: Party) : FlowLogic<SignedTransaction>() {
         @Suspendable
-        override fun call() {
-            val stx = subFlow(object : SignTransactionFlow(session) {
-                override fun checkTransaction(stx: SignedTransaction) {
-
-                }
-            })
-//            throw FinalityFlowException(stx.id, runId.uuid)
-            subFlow(ReceiveFinalityFlow(session, stx.id))
+        override fun call(): SignedTransaction {
+            val txBuilder = DummyContract.move(stateAndRef, newOwner)
+            val signedTransaction = serviceHub.signInitialTransaction(txBuilder, ourIdentity.owningKey)
+            serviceHub.recordUnnotarisedTransaction(signedTransaction, FlowTransactionMetadata(
+                initiator = ourIdentity.name,
+                peers = setOf(newOwner.name)
+            ))
+            sleep(Duration.ZERO)    // force checkpoint / txn commit
+            throw FinalityFlowException(signedTransaction.id, runId.uuid)
         }
     }
 

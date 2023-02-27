@@ -73,6 +73,26 @@ internal class FlowStatusQueryCommand : MultiRpcInteractiveShellCommand() {
         queryById(context.writer, input, ops(NodeFlowStatusRpcOps::class.java))
     }
 
+    @Command
+    @Man("List finality flow transaction information by flow ID")
+    @Usage(
+        "List finality flow transaction information by flow ID\n" +
+                "queryFinalityById <id1> <id2> <id3> will return flow transaction data on id1, id2, id3"
+    )
+    fun queryFinalityById(context: InvocationContext<Map<Any, Any>>, @Argument(unquote = true) input: List<String>?) {
+        queryFinalityById(context.writer, input, ops(NodeFlowStatusRpcOps::class.java))
+    }
+
+    @Command
+    @Man("List finality flow transaction information by transaction ID")
+    @Usage(
+        "List finality flow transaction information by transaction ID\n" +
+                "queryFinalityByTxnId <txnId1> <txnId2> <txnId3> will return flow transaction data on txnId1, txnId2, txnId3"
+    )
+    fun queryFinalityByTxnId(context: InvocationContext<Map<Any, Any>>, @Argument(unquote = true) input: List<String>?) {
+        queryFinalityByTxnId(context.writer, input, ops(NodeFlowStatusRpcOps::class.java))
+    }
+
     companion object {
         val INSTANT_FORMATTER: DateTimeFormatter = DateTimeFormatter.ISO_INSTANT
         private val INSTANT_JSON_SERIALIZER: JsonSerializer<Instant> = object : JsonSerializer<Instant>() {
@@ -98,6 +118,54 @@ internal class FlowStatusQueryCommand : MultiRpcInteractiveShellCommand() {
         fun queryById(writer: PrintWriter, input: List<String>?, ops: NodeFlowStatusRpcOps) {
             val results = input?.mapNotNull { id ->
                 ops.getFlowStatus(id)
+            } ?: listOf()
+            if (results.isEmpty()) {
+                writer.println("No Results")
+            } else {
+                try {
+                    val additionalSerializers = SimpleModule()
+                    additionalSerializers.addSerializer(Instant::class.java, INSTANT_JSON_SERIALIZER)
+                    val mapper = ObjectMapper(YAMLFactory())
+                    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                    mapper.registerModule(JavaTimeModule())
+                    mapper.registerModule(additionalSerializers)
+                    mapper.writeValue(writer, results)
+                } catch (e: Exception) {
+                    writer.println("failed to print query result to console")
+                    throw e
+                }
+            }
+        }
+
+        @Suppress("TooGenericExceptionCaught")
+        fun queryFinalityById(writer: PrintWriter, input: List<String>?, ops: NodeFlowStatusRpcOps) {
+            val results = input?.mapNotNull { id ->
+                ops.getFlowTransaction(id).apply {
+                    println(this)
+                }
+            } ?: listOf()
+            if (results.isEmpty()) {
+                writer.println("No Results")
+            } else {
+                try {
+                    val additionalSerializers = SimpleModule()
+                    additionalSerializers.addSerializer(Instant::class.java, INSTANT_JSON_SERIALIZER)
+                    val mapper = ObjectMapper(YAMLFactory())
+                    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                    mapper.registerModule(JavaTimeModule())
+                    mapper.registerModule(additionalSerializers)
+                    mapper.writeValue(writer, results)
+                } catch (e: Exception) {
+                    writer.println("failed to print query result to console")
+                    throw e
+                }
+            }
+        }
+
+        @Suppress("TooGenericExceptionCaught")
+        fun queryFinalityByTxnId(writer: PrintWriter, input: List<String>?, ops: NodeFlowStatusRpcOps) {
+            val results = input?.mapNotNull { id ->
+                ops.getFlowTransactionByTxnId(id)
             } ?: listOf()
             if (results.isEmpty()) {
                 writer.println("No Results")
