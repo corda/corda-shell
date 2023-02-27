@@ -120,12 +120,12 @@ class FlowRPCCommandTest : CommandTestBase() {
                 testCommand(
                     session,
                     command = "flowStatus queryFinalityById ${e.flowId}",
-                    expected = ""
+                    expected = "status: \"MISSING_NOTARY_SIG\""
                 )
                 testCommand(
                     session,
                     command = "flowStatus queryFinalityByTxnId ${e.txnId}",
-                    expected = ""
+                    expected = "status: \"MISSING_NOTARY_SIG\""
                 )
                 testCommand(
                     session,
