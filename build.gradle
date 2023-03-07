@@ -92,6 +92,20 @@ allprojects {
     group 'com.r3.corda'
     version rootProject.version
 
+    configurations {
+        all {
+            resolutionStrategy {
+                eachDependency { details ->
+                    if (details.requested.group == 'org.apache.sshd') {
+                        if (details.requested.name == "sshd-common") {
+                            details.useVersion sshdCommonVersion
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     repositories {
         mavenLocal()
         if (System.getenv("CORDA_USE_CACHE")) {
@@ -183,6 +197,8 @@ allprojects {
             allWarningsAsErrors = false
         }
     }
+    tasks.register("allDependencies", DependencyReportTask) {}
+
 }
 
 artifactory {
