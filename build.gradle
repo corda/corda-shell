@@ -197,8 +197,6 @@ allprojects {
             allWarningsAsErrors = false
         }
     }
-    tasks.register("allDependencies", DependencyReportTask) {}
-
 }
 
 artifactory {
