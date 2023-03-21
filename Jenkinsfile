@@ -58,6 +58,17 @@ pipeline {
     }
 
     stages {
+        stage('Read properties') {
+            steps {
+                script {
+                    def props = readProperties file: 'gradle.properties'
+                    groupId = props['cordaReleaseGroup']
+                    def artifactId = 'corda-shell'
+                    version = props['cordaShellReleaseVersion']
+                    echo "${groupId}-${artifactId}-${version}"
+                }
+            }
+        }
         stage('Snyk Security') {
             when {
                 expression { isRelease || isReleaseBranch }
