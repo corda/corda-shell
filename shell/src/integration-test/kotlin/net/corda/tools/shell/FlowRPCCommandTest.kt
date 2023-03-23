@@ -14,6 +14,7 @@ import net.corda.core.utilities.getOrThrow
 import net.corda.core.utilities.millis
 import net.corda.failingflows.workflows.HospitalizerFlow
 import net.corda.node.services.Permissions
+import net.corda.node.services.api.ServiceHubInternal
 import net.corda.testing.contracts.DummyContract
 import net.corda.testing.core.ALICE_NAME
 import net.corda.testing.core.BOB_NAME
@@ -117,7 +118,7 @@ class FlowRPCCommandTest : CommandTestBase() {
     @StartableByRPC
     class PauseFlow : FlowLogic<Unit>() {
         companion object {
-            var beforePause: Semaphore? = null;
+            var beforePause: Semaphore? = null
         }
 
         @Suspendable
@@ -147,7 +148,7 @@ class FlowRPCCommandTest : CommandTestBase() {
         override fun call(): SignedTransaction {
             val txBuilder = DummyContract.move(stateAndRef, newOwner)
             val signedTransaction = serviceHub.signInitialTransaction(txBuilder, ourIdentity.owningKey)
-            serviceHub.recordUnnotarisedTransaction(signedTransaction, FlowTransactionMetadata(
+            (serviceHub as ServiceHubInternal).recordUnnotarisedTransaction(signedTransaction, FlowTransactionMetadata(
                 initiator = ourIdentity.name,
                 peers = setOf(newOwner.name)
             ))
