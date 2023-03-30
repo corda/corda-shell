@@ -163,7 +163,7 @@ internal class FlowStatusQueryCommand : MultiRpcInteractiveShellCommand() {
         @Suppress("TooGenericExceptionCaught")
         fun queryFinalityByTxnId(writer: PrintWriter, input: List<String>?, ops: NodeFlowStatusRpcOps) {
             val results = input?.mapNotNull { id ->
-                ops.getFlowTransactionByTxnId(id).apply { println(this) }
+                ops.getFlowTransactionByTxnId(id)
             } ?: listOf()
             if (results.isEmpty()) {
                 writer.println("No Results")
