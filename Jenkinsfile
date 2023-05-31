@@ -44,20 +44,32 @@ pipeline {
     }
 
     triggers {
-        cron (isReleaseBranch ? '@midnight' : '')
+
+        cron(isReleaseBranch ? '@midnight' : '')
     }
 
     environment {
         ARTIFACTORY_BUILD_NAME = "${artifactoryBuildName}"
         ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
+        CORDA_BUILD_EDITION = "${buildEdition}"
         CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
         CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
-        CORDA_BUILD_EDITION = "${buildEdition}"
         CORDA_USE_CACHE = "corda-remotes"
         SNYK_TOKEN = "c4-os-snyk-shell"
     }
 
     stages {
+        stage('Read properties') {
+            steps {
+                script {
+                    def props = readProperties file: 'gradle.properties'
+                    groupId = props['cordaReleaseGroup']
+                    def artifactId = 'corda-shell'
+                    version = props['cordaShellReleaseVersion']
+                    echo "${groupId}-${artifactId}-${version}"
+                }
+            }
+        }
         stage('Snyk Security') {
             when {
                 expression { isRelease || isReleaseBranch }
