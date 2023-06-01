@@ -46,7 +46,7 @@ pipeline {
     }
 
     triggers {
-        cron (isReleaseBranch ? '@midnight' : '')
+        cron(isReleaseBranch ? '@midnight' : '')
     }
 
     environment {
@@ -60,6 +60,19 @@ pipeline {
     }
 
     stages {
+        
+        stage('Read properties') {
+            steps {
+                script {
+                    def props = readProperties file: 'gradle.properties'
+                    groupId = props['cordaReleaseGroup']
+                    def artifactId = 'corda-shell'
+                    version = props['cordaShellReleaseVersion']
+                    echo "${groupId}-${artifactId}-${version}"
+                }
+            }
+        }
+
         stage('Snyk Security') {
             when {
                 expression { isRelease || isReleaseBranch }
@@ -78,7 +91,7 @@ pipeline {
         stage('Build') {
             steps {
                 script{
-                    sh "./gradlew clean assemble -Si ${extraGradleCommands}"
+                    sh "./gradlew clean assemble ${extraGradleCommands} -Si"
                 }
             }
         }
