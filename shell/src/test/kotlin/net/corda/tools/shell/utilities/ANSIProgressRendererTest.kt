@@ -1,10 +1,10 @@
 package net.corda.tools.shell.utilities
 
-import com.nhaarman.mockito_kotlin.KArgumentCaptor
-import com.nhaarman.mockito_kotlin.argumentCaptor
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.times
-import com.nhaarman.mockito_kotlin.verify
+import org.mockito.kotlin.KArgumentCaptor
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import net.corda.core.flows.StateMachineRunId
 import net.corda.core.internal.concurrent.openFuture
 import net.corda.core.messaging.DataFeed
