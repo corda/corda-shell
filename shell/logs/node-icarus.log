@@ -1,0 +1,44 @@
+[INFO ] 2023-12-05T15:38:56,155Z [Time-limited test] shell.FlowShellCommand. - Executing command "flow pauseAll". {}
+[INFO ] 2023-12-05T15:38:56,166Z [Time-limited test] shell.FlowShellCommand. - Executing command "flow retryAllPaused". {}
+[INFO ] 2023-12-05T15:38:56,170Z [Time-limited test] shell.FlowShellCommand. - Executing command "flow pauseAll". {}
+[INFO ] 2023-12-05T15:38:56,174Z [Time-limited test] shell.FlowShellCommand. - Executing command "flow pauseAllHospitalized". {}
+[INFO ] 2023-12-05T15:38:56,177Z [Time-limited test] shell.FlowShellCommand. - Executing command "flow retryAllPaused". {}
+[INFO ] 2023-12-05T15:38:56,180Z [Time-limited test] shell.FlowShellCommand. - Executing command "flow retryAllPausedHospitalized". {}
+[INFO ] 2023-12-05T15:38:56,183Z [Time-limited test] shell.FlowShellCommand. - Executing command "flow retryAllPausedHospitalized". {}
+[INFO ] 2023-12-05T15:38:56,187Z [Time-limited test] shell.FlowShellCommand. - Executing command "flow pauseAllHospitalized". {}
+[INFO ] 2023-12-05T15:39:04,082Z [Time-limited test] shell.HashLookupShellCommand. - Executing command "hashLookup". {}
+[INFO ] 2023-12-05T15:39:04,083Z [Time-limited test] shell.HashLookupShellCommand. - Executing command "hashLookup". {}
+[INFO ] 2023-12-05T15:39:04,084Z [Time-limited test] shell.HashLookupShellCommand. - Executing command "hashLookup". {}
+[INFO ] 2023-12-05T15:39:04,087Z [Time-limited test] shell.HashLookupShellCommand. - Executing command "hashLookup". {}
+[ERROR] 2023-12-05T15:39:04,156Z [Time-limited test] shell.InteractiveShell. - Failed to parse flow ID {}
+com.fasterxml.jackson.databind.exc.InvalidFormatException: Cannot deserialize value of type `net.corda.core.flows.StateMachineRunId` from String "nonsense": not a valid textual representation, problem: Invalid UUID string: nonsense
+ at [Source: (StringReader); line: 1, column: 1]
+	at com.fasterxml.jackson.databind.exc.InvalidFormatException.from(InvalidFormatException.java:67) ~[jackson-databind-2.13.5.jar:2.13.5]
+	at com.fasterxml.jackson.databind.DeserializationContext.weirdStringException(DeserializationContext.java:1991) ~[jackson-databind-2.13.5.jar:2.13.5]
+	at com.fasterxml.jackson.databind.deser.std.FromStringDeserializer.deserialize(FromStringDeserializer.java:186) ~[jackson-databind-2.13.5.jar:2.13.5]
+	at com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue(DefaultDeserializationContext.java:323) ~[jackson-databind-2.13.5.jar:2.13.5]
+	at com.fasterxml.jackson.databind.ObjectMapper._readMapAndClose(ObjectMapper.java:4674) ~[jackson-databind-2.13.5.jar:2.13.5]
+	at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3629) ~[jackson-databind-2.13.5.jar:2.13.5]
+	at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3597) ~[jackson-databind-2.13.5.jar:2.13.5]
+	at net.corda.tools.shell.InteractiveShell.parseStateMachineRunId(InteractiveShell.kt:443) ~[main/:?]
+	at net.corda.tools.shell.InteractiveShell.killFlowById(InteractiveShell.kt:468) ~[main/:?]
+	at net.corda.tools.shell.InteractiveShellTest.killFlowWithNonsenseID(InteractiveShellTest.kt:238) ~[test/:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[?:?]
+	at jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[?:?]
+	at jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[?:?]
+	at java.lang.reflect.Method.invoke(Method.java:568) ~[?:?]
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59) ~[junit-4.13.2.jar:4.13.2]
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12) ~[junit-4.13.2.jar:4.13.2]
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:56) ~[junit-4.13.2.jar:4.13.2]
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17) ~[junit-4.13.2.jar:4.13.2]
+	at org.junit.internal.runners.statements.FailOnTimeout$CallableStatement.call(FailOnTimeout.java:299) ~[junit-4.13.2.jar:4.13.2]
+	at org.junit.internal.runners.statements.FailOnTimeout$CallableStatement.call(FailOnTimeout.java:293) ~[junit-4.13.2.jar:4.13.2]
+	at java.util.concurrent.FutureTask.run(FutureTask.java:264) ~[?:?]
+	at java.lang.Thread.run(Thread.java:833) [?:?]
+Caused by: java.lang.IllegalArgumentException: Invalid UUID string: nonsense
+	at java.util.UUID.fromString1(UUID.java:280) ~[?:?]
+	at java.util.UUID.fromString(UUID.java:258) ~[?:?]
+	at net.corda.client.jackson.internal.StateMachineRunIdDeserializer._deserialize(CordaModule.kt:519) ~[corda-jackson-4.12-SNAPSHOT.jar:?]
+	at net.corda.client.jackson.internal.StateMachineRunIdDeserializer._deserialize(CordaModule.kt:517) ~[corda-jackson-4.12-SNAPSHOT.jar:?]
+	at com.fasterxml.jackson.databind.deser.std.FromStringDeserializer.deserialize(FromStringDeserializer.java:175) ~[jackson-databind-2.13.5.jar:2.13.5]
+	... 19 more

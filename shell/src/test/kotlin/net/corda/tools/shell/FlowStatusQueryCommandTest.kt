@@ -1,7 +1,5 @@
 package net.corda.tools.shell
 
-import com.nhaarman.mockito_kotlin.argThat
-import com.nhaarman.mockito_kotlin.mock
 import net.corda.client.rpc.proxy.NodeFlowStatusRpcOps
 import net.corda.core.flows.FlowTimeWindow
 import net.corda.core.identity.CordaX500Name
@@ -19,7 +17,9 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.argThat
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit

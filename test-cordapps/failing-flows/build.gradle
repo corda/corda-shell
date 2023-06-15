@@ -3,3 +3,8 @@ apply plugin: 'net.corda.plugins.quasar-utils'
 apply plugin: 'net.corda.plugins.cordapp'
 
 description 'Corda failing-flows test cordapp'
+
+cordapp {
+    targetPlatformVersion cordaPlatformVersion.toInteger()
+    minimumPlatformVersion 1
+}
