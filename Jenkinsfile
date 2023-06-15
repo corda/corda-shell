@@ -3,7 +3,8 @@ import static com.r3.build.BuildControl.killAllExistingBuildsForJob
 killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
 
 boolean isReleaseBranch = (env.BRANCH_NAME =~ /^release\/.*/)
-boolean isRelease = (env.TAG_NAME =~ /^release-.*/)
+boolean isReleaseTag = (env.TAG_NAME =~ /^release-.*/)
+boolean isRelease = isReleaseBranch || isReleaseTag
 
 boolean isOSReleaseBranch = (env.BRANCH_NAME =~ /^release\/os\/.*/)
 boolean isEntReleaseBranch = (env.BRANCH_NAME =~ /^release\/ent\/.*/)
@@ -12,17 +13,17 @@ boolean isOSReleaseTag = (env.BRANCH_NAME =~ /^release-OS-.*/)
 boolean isENTReleaseTag = (env.TAG_NAME =~ /^release-ENT-.*/)
 
 def buildEdition = (isOSReleaseTag) ? "Corda Community Edition" : "Corda Open Source"
-
+String publishOptions = isRelease ? "-s --info" : "--no-daemon -s -PversionFromGit"
 String artifactoryBuildName = "Corda-Shell"
 
 // Artifactory build info links
-if(!isRelease && isOSReleaseBranch){
+if(!isReleaseTag && isOSReleaseBranch){
     artifactoryBuildName = "${artifactoryBuildName}-OS :: Jenkins :: snapshot :: ${env.BRANCH_NAME}"
-}else if (isRelease && isOSReleaseTag){
+}else if (isReleaseTag && isOSReleaseTag){
     artifactoryBuildName = "${artifactoryBuildName}-OS :: Jenkins :: ${env.BRANCH_NAME}"
-}else if(!isRelease && isEntReleaseBranch){
+}else if(!isReleaseTag && isEntReleaseBranch){
     artifactoryBuildName = "${artifactoryBuildName}-Ent :: Jenkins :: snapshot :: ${env.BRANCH_NAME}"
-}else if(isRelease && isENTReleaseTag){
+}else if(isReleaseTag && isENTReleaseTag){
     artifactoryBuildName = "${artifactoryBuildName}-Ent :: Jenkins :: ${env.BRANCH_NAME}"
 }
 
@@ -39,7 +40,7 @@ pipeline {
     }
 
     parameters {
-        booleanParam defaultValue: (isReleaseBranch || isRelease), description: 'Publish artifacts to Artifactory?', name: 'DO_PUBLISH'
+        booleanParam defaultValue: isRelease, description: 'Publish artifacts to Artifactory?', name: 'DO_PUBLISH'
     }
 
     triggers {
@@ -54,13 +55,14 @@ pipeline {
         CORDA_BUILD_EDITION = "${buildEdition}"
         CORDA_USE_CACHE = "corda-remotes"
         SNYK_TOKEN = "c4-os-snyk-shell"
+        JAVA_HOME="/usr/lib/jvm/java-17-amazon-corretto"
     }
 
     stages { 
 
         stage('Snyk Security') {
             when {
-                expression { isRelease || isReleaseBranch }
+                expression { isRelease }
             }
             steps {
                 script {
@@ -100,50 +102,29 @@ pipeline {
                 expression { params.DO_PUBLISH }
             }
             steps {
-                script{
-                        def props = readProperties file: 'gradle.properties'
-                        def groupId = props['cordaReleaseGroup']   
-                        boolean isOpenSource = groupId.equals("net.corda") ? true : false
-                        def snapshotRepo
-                        def releasesRepo
-
-                        if(isOpenSource){
-                             releasesRepo = "corda-releases"
-                             snapshotRepo = "corda-dev"
-                        }else {
-                             releasesRepo = "r3-corda-releases"
-                             snapshotRepo = "r3-corda-dev"
-                        }
-                        rtServer (
-                                id: 'R3-Artifactory',
-                                url: 'https://software.r3.com/artifactory',
-                                credentialsId: 'artifactory-credentials'
-                        )
-                        rtGradleDeployer (
-                                id: 'deployer',
-                                serverId: 'R3-Artifactory',
-                                repo: isRelease ? releasesRepo : snapshotRepo
-                        )
-
-                        withCredentials([
-                                usernamePassword(credentialsId: 'artifactory-credentials',
-                                                usernameVariable: 'CORDA_ARTIFACTORY_USERNAME',
-                                                passwordVariable: 'CORDA_ARTIFACTORY_PASSWORD')]) {
-                            rtGradleRun (
-                                    usesPlugin: true,
-                                    useWrapper: true,
-                                    switches: "--no-daemon -Si",
-                                    tasks: 'artifactoryPublish',
-                                    deployerId: 'deployer',
-                                    buildName: env.ARTIFACTORY_BUILD_NAME
-                            )
-                        }
-                        rtPublishBuildInfo (
-                                serverId: 'R3-Artifactory',
-                                buildName: env.ARTIFACTORY_BUILD_NAME
-                        )
-                    }
-                }
+                rtServer(
+                        id: 'R3-Artifactory',
+                        url: 'https://software.r3.com/artifactory',
+                        credentialsId: 'artifactory-credentials'
+                )
+                rtGradleDeployer(
+                        id: 'deployer',
+                        serverId: 'R3-Artifactory',
+                        repo: isRelease ? 'corda-releases' : 'corda-dev'
+                )
+                rtGradleRun(
+                        usesPlugin: true,
+                        useWrapper: true,
+                        switches: publishOptions,
+                        tasks: 'artifactoryPublish',
+                        deployerId: 'deployer',
+                        buildName: env.ARTIFACTORY_BUILD_NAME
+                )
+                rtPublishBuildInfo(
+                        serverId: 'R3-Artifactory',
+                        buildName: env.ARTIFACTORY_BUILD_NAME
+                )
+            }
         }
     }
 
