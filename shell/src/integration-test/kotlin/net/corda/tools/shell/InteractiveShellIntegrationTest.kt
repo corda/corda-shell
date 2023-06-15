@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.type.TypeFactory
 import com.jcraft.jsch.ChannelExec
 import com.jcraft.jsch.JSch
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.mock
 import net.corda.client.jackson.JacksonSupport
 import net.corda.client.jackson.internal.valueAs
 import net.corda.client.rpc.RPCException
@@ -18,15 +18,7 @@ import net.corda.core.contracts.LinearState
 import net.corda.core.contracts.StateRef
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.crypto.SecureHash
-import net.corda.core.flows.CollectSignaturesFlow
-import net.corda.core.flows.FlowExternalAsyncOperation
-import net.corda.core.flows.FlowExternalOperation
-import net.corda.core.flows.FlowLogic
-import net.corda.core.flows.FlowSession
-import net.corda.core.flows.InitiatedBy
-import net.corda.core.flows.InitiatingFlow
-import net.corda.core.flows.SignTransactionFlow
-import net.corda.core.flows.StartableByRPC
+import net.corda.core.flows.*
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import net.corda.core.internal.concurrent.transpose
@@ -423,7 +415,7 @@ class InteractiveShellIntegrationTest {
             assertEquals(4, json["flowCallStack"].size())
             val sendAndReceiveJson = json["suspendedOn"]["sendAndReceive"][0]
             assertEquals(bobNode.nodeInfo.singleIdentity().toString(), sendAndReceiveJson["session"]["peer"].asText())
-            assertEquals(SignedTransaction::class.qualifiedName, sendAndReceiveJson["sentPayloadType"].asText())
+            assertEquals(SignedTransactionWithDistributionList::class.qualifiedName, sendAndReceiveJson["sentPayloadType"].asText())
         }
     }
 
