@@ -35,7 +35,7 @@ sourceSets {
 
 dependencies {
 
-    implementation "$cordaReleaseGroup:corda-core:$cordaReleaseVersion"
+    implementation "net.corda:corda-core:$cordaReleaseVersion"
     implementation "$cordaReleaseGroup:corda-node-api:$cordaReleaseVersion"
 
     implementation "$cordaReleaseGroup:corda-rpc:$cordaReleaseVersion"
@@ -75,6 +75,9 @@ dependencies {
         exclude group: "org.slf4j", module: "slf4j-jdk14"
         exclude group: "org.bouncycastle"
     }
+
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
 
     // JAnsi: for drawing things to the terminal in nicely coloured ways.
     implementation "org.fusesource.jansi:jansi:$jansiVersion"
