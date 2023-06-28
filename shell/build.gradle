@@ -62,8 +62,8 @@ dependencies {
 
     testImplementation "co.paralleluniverse:quasar-core:$quasarVersion"
 
-    compile "$cordaReleaseGroup:corda-extensions-api:$cordaReleaseVersion"
-    compile "$cordaReleaseGroup:corda-rpc-ext:$cordaReleaseVersion"
+    implementation "$cordaReleaseGroup:corda-extensions-api:$cordaReleaseVersion"
+    implementation "$cordaReleaseGroup:corda-rpc-ext:$cordaReleaseVersion"
 
     // CRaSH: An embeddable monitoring and admin shell with support for adding new commands written in Groovy.
     implementation("org.crashub:crash.shell:$crashVersion") {
@@ -88,7 +88,7 @@ dependencies {
 
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
 
-    testCompile "$cordaReleaseGroup:corda-extensions-node:$cordaReleaseVersion"
+    testImplementation "$cordaReleaseGroup:corda-extensions-node:$cordaReleaseVersion"
 
     testImplementation "junit:junit:$junitVersion"
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junitVintageVersion"
