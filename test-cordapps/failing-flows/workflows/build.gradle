@@ -8,7 +8,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 
     // Corda integration dependencies
-    cordaProvided "$cordaOpenSourceReleaseGroup:corda-core:$cordaReleaseVersion"
+    cordaProvided "$cordaOpenSourceReleaseGroup:corda-core:$cordaOSReleaseVersion"
 }
 
 cordapp {

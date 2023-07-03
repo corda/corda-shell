@@ -39,7 +39,7 @@ shadowJar {
     archiveClassifier = ''
     mergeServiceFiles()
     manifest {
-        attributes "Corda-Release-Version": cordaReleaseVersion
+        attributes "Corda-Release-Version": cordaOSReleaseVersion
         attributes('Corda-Platform-Version': cordaPlatformVersion)
         attributes "Corda-Vendor": cordaBuildEdition
     }

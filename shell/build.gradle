@@ -35,13 +35,13 @@ sourceSets {
 
 dependencies {
 
-    implementation "net.corda:corda-core:$cordaReleaseVersion"
-    implementation "$cordaReleaseGroup:corda-node-api:$cordaReleaseVersion"
+    implementation "net.corda:corda-core:$cordaOSReleaseVersion"
+    implementation "$cordaReleaseGroup:corda-node-api:$cordaEntReleaseVersion"
 
-    implementation "$cordaReleaseGroup:corda-rpc:$cordaReleaseVersion"
-    implementation "$cordaReleaseGroup:corda-tools-cliutils:$cordaReleaseVersion"
-    implementation "$cordaReleaseGroup:corda-common-logging:$cordaReleaseVersion"
-    implementation "$cordaReleaseGroup:corda-common-configuration-parsing:$cordaReleaseVersion"
+    implementation "$cordaReleaseGroup:corda-rpc:$cordaEntReleaseVersion"
+    implementation "$cordaReleaseGroup:corda-tools-cliutils:$cordaEntReleaseVersion"
+    implementation "$cordaReleaseGroup:corda-common-logging:$cordaEntReleaseVersion"
+    implementation "$cordaReleaseGroup:corda-common-configuration-parsing:$cordaEntReleaseVersion"
 
     implementation "io.reactivex:rxjava:$rxjavaVersion"
     implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
@@ -54,16 +54,21 @@ dependencies {
     implementation "org.apache.activemq:artemis-commons:$artemisVersion"
 
     // Jackson support: serialisation to/from JSON, YAML, etc.
-    implementation "$cordaReleaseGroup:corda-jackson:$cordaReleaseVersion"
+    implementation "$cordaReleaseGroup:corda-jackson:$cordaEntReleaseVersion"
 
     // Bouncy castle support needed for X509 certificate manipulation
     testImplementation "org.bouncycastle:bcprov-debug-jdk18on:${bouncycastleVersion}"
     testImplementation "org.bouncycastle:bcpkix-debug-jdk18on:${bouncycastleVersion}"
 
+    testImplementation 'org.hamcrest:hamcrest-library:2.1'
+    testImplementation "com.google.guava:guava-testlib:$guavaVersion"
+
     testImplementation "co.paralleluniverse:quasar-core:$quasarVersion"
 
-    implementation "$cordaReleaseGroup:corda-extensions-api:$cordaReleaseVersion"
-    implementation "$cordaReleaseGroup:corda-rpc-ext:$cordaReleaseVersion"
+    testRuntimeOnly "org.iq80.snappy:snappy:$snappyVersion"
+
+    implementation "$cordaReleaseGroup:corda-extensions-api:$cordaEntReleaseVersion"
+    implementation "$cordaReleaseGroup:corda-rpc-ext:$cordaEntReleaseVersion"
 
     // CRaSH: An embeddable monitoring and admin shell with support for adding new commands written in Groovy.
     implementation("org.crashub:crash.shell:$crashVersion") {
@@ -91,7 +96,7 @@ dependencies {
 
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
 
-    testImplementation "$cordaReleaseGroup:corda-extensions-node:$cordaReleaseVersion"
+    testImplementation "$cordaReleaseGroup:corda-extensions-node:$cordaEntReleaseVersion"
 
     testImplementation "junit:junit:$junitVersion"
     testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junitVintageVersion"
@@ -100,17 +105,17 @@ dependencies {
 
     // Unit testing helpers.
     testImplementation "org.assertj:assertj-core:$assertJVersion"
-    testImplementation "$cordaReleaseGroup:corda-node:$cordaReleaseVersion"
-    testImplementation "$cordaReleaseGroup:corda-core-test-utils:$cordaReleaseVersion"
-    testImplementation "$cordaReleaseGroup:corda-test-utils:$cordaReleaseVersion"
-    testImplementation "$cordaReleaseGroup:corda-jackson:$cordaReleaseVersion"
+    testImplementation "$cordaReleaseGroup:corda-node:$cordaEntReleaseVersion"
+    testImplementation "$cordaReleaseGroup:corda-core-test-utils:$cordaEntReleaseVersion"
+    testImplementation "$cordaReleaseGroup:corda-test-utils:$cordaEntReleaseVersion"
+    testImplementation "$cordaReleaseGroup:corda-jackson:$cordaEntReleaseVersion"
     testImplementation "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion"
 
     // Jsh: Testing SSH server.
     integrationTestImplementation "com.jcraft:jsch:$jschVersion"
 
-    integrationTestImplementation "$cordaReleaseGroup:corda-node-driver:$cordaReleaseVersion"
-    integrationTestImplementation "$cordaReleaseGroup:corda-test-utils:$cordaReleaseVersion"
+    integrationTestImplementation "$cordaReleaseGroup:corda-node-driver:$cordaEntReleaseVersion"
+    integrationTestImplementation "$cordaReleaseGroup:corda-test-utils:$cordaEntReleaseVersion"
     integrationTestImplementation project(':test-cordapps:failing-flows:workflows')
 
     testImplementation "org.mockito.kotlin:mockito-kotlin:$mockitoKotlinVersion"
@@ -138,7 +143,7 @@ shadowJar {
     archiveClassifier = ''
     mergeServiceFiles()
     manifest {
-        attributes "Corda-Release-Version": cordaReleaseVersion
+        attributes "Corda-Release-Version": cordaOSReleaseVersion
         attributes('Corda-Platform-Version': cordaPlatformVersion)
         attributes "Corda-Vendor": "Corda Enterprise Edition"
     }
