@@ -70,6 +70,9 @@ dependencies {
     implementation "$cordaReleaseGroup:corda-extensions-api:$cordaEntReleaseVersion"
     implementation "$cordaReleaseGroup:corda-rpc-ext:$cordaEntReleaseVersion"
 
+    implementation "$cordaReleaseGroup:corda-extensions-api:$cordaEntReleaseVersion"
+    implementation "$cordaReleaseGroup:corda-rpc-ext:$cordaEntReleaseVersion"
+
     // CRaSH: An embeddable monitoring and admin shell with support for adding new commands written in Groovy.
     implementation("org.crashub:crash.shell:$crashVersion") {
         exclude group: "org.slf4j", module: "slf4j-jdk14"
@@ -95,6 +98,8 @@ dependencies {
     implementation "org.slf4j:jul-to-slf4j:$slf4jVersion"
 
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
+
+    testImplementation "$cordaReleaseGroup:corda-extensions-node:$cordaEntReleaseVersion"
 
     testImplementation "$cordaReleaseGroup:corda-extensions-node:$cordaEntReleaseVersion"
 
