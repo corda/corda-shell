@@ -33,21 +33,21 @@ buildscript {
             }
         } else {
             maven {
-                url "${artifactoryContextUrl}/corda-dependencies-dev"
+                url "${publicArtifactURL}/corda-dependencies-dev"
                 content {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
                 }
             }
             maven {
-                url "${artifactoryContextUrl}/corda-releases"
+                url "${publicArtifactURL}/corda-releases"
                 content {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
                 }
             }
-            maven { url 'https://software.r3.com/artifactory/corda-releases' }
-            maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
+            maven { url "${publicArtifactURL}/corda-releases" }
+            maven { url "${publicArtifactURL}/corda-dependencies" }
             mavenCentral()
         }
     }
@@ -93,7 +93,7 @@ allprojects {
             }
         } else {
             maven {
-                url "${artifactoryContextUrl}/corda-dependencies"
+                url "${publicArtifactURL}/corda-dependencies"
                 content {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
@@ -103,7 +103,7 @@ allprojects {
                 }
             }
             maven {
-                url "${artifactoryContextUrl}/corda-dev"
+                url "${publicArtifactURL}/corda-dev"
                 content {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
@@ -116,8 +116,8 @@ allprojects {
                     includeGroup 'com.github.detro'
                 }
             }
-            maven { url 'https://software.r3.com/artifactory/corda-releases' }
-            maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
+            maven { url "${publicArtifactURL}/corda-releases" }
+            maven { url "${publicArtifactURL}/corda-dependencies" }
             mavenCentral()
         }
     }
