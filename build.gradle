@@ -27,13 +27,20 @@ buildscript {
                     basic(BasicAuthentication)
                 }
                 credentials {
-                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
-                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
                 }
             }
         } else {
             maven {
                 url "${artifactoryContextUrl}/corda-dependencies-dev"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
                 content {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
@@ -41,27 +48,58 @@ buildscript {
             }
             maven {
                 url "${artifactoryContextUrl}/corda-releases"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
                 content {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
                 }
             }
-            maven { url 'https://software.r3.com/artifactory/corda-releases' }
-            maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
+            maven {
+                url "${artifactoryContextUrl}/corda-releases"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
+            maven {
+                url "${artifactoryContextUrl}/corda-dependencies"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
             mavenCentral()
         }
         maven {
             url "${artifactoryContextUrl}/r3-corda-dev"
+            authentication {
+                basic(BasicAuthentication)
+            }
             credentials {
-                username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
-                password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
             }
         }
         maven {
             url "${artifactoryContextUrl}/r3-corda-releases"
+            authentication {
+                basic(BasicAuthentication)
+            }
             credentials {
-                username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
-                password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
             }
         }
     }
@@ -102,13 +140,20 @@ allprojects {
                     basic(BasicAuthentication)
                 }
                 credentials {
-                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
-                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
                 }
             }
         } else {
             maven {
                 url "${artifactoryContextUrl}/corda-dependencies"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
                 content {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
@@ -119,6 +164,13 @@ allprojects {
             }
             maven {
                 url "${artifactoryContextUrl}/corda-dev"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
                 content {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
@@ -131,20 +183,45 @@ allprojects {
                     includeGroup 'com.github.detro'
                 }
             }
-            maven { url 'https://software.r3.com/artifactory/corda-releases' }
-            maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
+            maven {
+                url "${artifactoryContextUrl}/corda-releases"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
+            maven {
+                url "${artifactoryContextUrl}/corda-dependencies"
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
+
             maven {
                 url "${artifactoryContextUrl}/r3-corda-dev"
+                authentication {
+                    basic(BasicAuthentication)
+                }
                 credentials {
-                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
-                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
                 }
             }
             maven {
                 url "${artifactoryContextUrl}/r3-corda-releases"
+                authentication {
+                    basic(BasicAuthentication)
+                }
                 credentials {
-                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
-                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
                 }
             }
             mavenCentral()
