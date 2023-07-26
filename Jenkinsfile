@@ -31,17 +31,7 @@ if(!isRelease && isOSReleaseBranch){
 
 
 pipeline {
-    agent {
-        docker {
-                image "build-zulu-openjdk:17"
-                label "standard"
-                registryUrl 'https://engineering-docker.software.r3.com/'
-                registryCredentialsId 'artifactory-credentials'
-                // Used to mount storage from the host as a volume to persist the cache between builds
-                args '-v /tmp:/host_tmp'
-                alwaysPull true
-        }
-    }
+    agent { label 'standard-latest-ami' }
 
     options {
         timestamps()
@@ -67,7 +57,7 @@ pipeline {
         CORDA_BUILD_EDITION = "${buildEdition}"
         CORDA_USE_CACHE = "corda-remotes"
         SNYK_TOKEN = "c4-ent-snyk-shell"
-        GRADLE_USER_HOME = "/host_tmp/gradle"
+        JAVA_HOME="/usr/lib/jvm/java-17-amazon-corretto"
     }
 
     stages {
