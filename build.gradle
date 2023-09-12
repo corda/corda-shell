@@ -53,37 +53,15 @@ buildscript {
                 }
             }
         } else {
-            maven {
-                url "${artifactoryContextUrl}/corda-dependencies-dev"
-                content {
-                    includeGroupByRegex 'net\\.corda(\\..*)?'
-                    includeGroupByRegex 'com\\.r3(\\..*)?'
-                }
-            }
-            maven {
-                url "${artifactoryContextUrl}/corda-releases"
-                content {
-                    includeGroupByRegex 'net\\.corda(\\..*)?'
-                    includeGroupByRegex 'com\\.r3(\\..*)?'
-                }
-            }
-            maven { url 'https://software.r3.com/artifactory/corda-releases' }
-            maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
             mavenCentral()
-        }
-        maven {
-            url "${artifactoryContextUrl}/r3-corda-dev"
-            credentials {
-                username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
-                password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+            maven {
+                url "${publicArtifactURL}/corda-releases"
+                content {
+                    includeGroupByRegex 'net\\.corda(\\..*)?'
+                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                }
             }
-        }
-        maven {
-            url "${artifactoryContextUrl}/r3-corda-releases"
-            credentials {
-                username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
-                password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
-            }
+            maven { url "${publicArtifactURL}/corda-dependencies" }
         }
     }
     dependencies {
@@ -95,11 +73,23 @@ buildscript {
 
 plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
+    id "org.ajoberstar.grgit" version "4.0.0"
     id 'corda.root-publish'
 }
 
-version = "$cordaShellReleaseVersion$versionSuffix"
+// If the command line project option -PversionFromGit is added to the gradle invocation, we'll resolve
+// the latest git commit hash and timestamp and create a version postfix from that
+if (project.hasProperty("versionFromGit")) {
+    ext.versionSuffix = "${grgit.head().dateTime.format("yyyyMMdd_HHmmss")}-${grgit.head().abbreviatedId}"
+}
 
+if (ext.versionSuffix != "") {
+    ext.release_version = "${ext.baseVersion}-${ext.versionSuffix}".toString()
+} else {
+    ext.release_version = "${ext.baseVersion}".toString()
+}
+
+version = "$release_version"
 
 logger.quiet("Corda release version: {}", version)
 
@@ -123,22 +113,34 @@ allprojects {
                 }
             }
         } else {
+            mavenCentral()
+            maven { url "${publicArtifactURL}/corda-releases" }
+            maven { url "${publicArtifactURL}/r3-corda-releases" }
             maven {
-                url "${artifactoryContextUrl}/corda-dependencies"
+                url "${publicArtifactURL}/corda-dependencies"
                 content {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
                     includeGroup 'co.paralleluniverse'
+                    includeGroup 'com.palominolabs.metrics'
                     includeGroup 'org.crashub'
                     includeGroup 'com.github.bft-smart'
                 }
                 metadataSources { artifact() }
             }
+            maven { url "${publicArtifactURL}/corda-dependencies-dev" }
             maven {
                 url "${artifactoryContextUrl}/corda-dev"
                 content {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
+                }
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
                 }
             }
             maven {
@@ -148,23 +150,26 @@ allprojects {
                     includeGroup 'com.github.detro'
                 }
             }
-            maven { url 'https://software.r3.com/artifactory/corda-releases' }
-            maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
             maven {
                 url "${artifactoryContextUrl}/r3-corda-dev"
+                authentication {
+                    basic(BasicAuthentication)
+                }
                 credentials {
                     username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
                     password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
                 }
             }
             maven {
-                url "${artifactoryContextUrl}/r3-corda-releases"
+                url "${artifactoryContextUrl}/corda-enterprise-for-customers"
+                authentication {
+                    basic(BasicAuthentication)
+                }
                 credentials {
                     username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
                     password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
                 }
             }
-            mavenCentral()
         }
     }
 

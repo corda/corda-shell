@@ -79,6 +79,11 @@ dependencies {
         exclude group: "org.bouncycastle"
     }
 
+    implementation("org.crashub:crash.cli:$crashVersion") {
+        exclude group: "org.slf4j", module: "slf4j-jdk14"
+        exclude group: "org.bouncycastle"
+    }
+
     implementation("org.crashub:crash.connectors.ssh:$crashVersion") {
         exclude group: "org.slf4j", module: "slf4j-jdk14"
         exclude group: "org.bouncycastle"
