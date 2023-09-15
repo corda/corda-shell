@@ -18,6 +18,7 @@ import net.corda.core.concurrent.CordaFuture
 import net.corda.core.contracts.TimeWindow
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowLogic
+import net.corda.core.flows.FlowTimeWindow
 import net.corda.core.flows.StateMachineRunId
 import net.corda.core.internal.Emoji
 import net.corda.core.internal.VisibleForTesting
@@ -35,7 +36,6 @@ import net.corda.core.messaging.FlowProgressHandle
 import net.corda.core.messaging.StateMachineUpdate
 import net.corda.core.messaging.flows.FlowManagerRPCOps
 import net.corda.core.messaging.pendingFlowsCount
-import net.corda.nodeapi.flow.hospital.FlowTimeWindow
 import net.corda.tools.shell.utlities.ANSIProgressRenderer
 import net.corda.tools.shell.utlities.StdoutANSIProgressRenderer
 import org.crsh.command.InvocationContext
