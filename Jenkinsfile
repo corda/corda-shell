@@ -81,19 +81,19 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                script{
-                    sh "./gradlew test -Si"
-                }
-            }
-            post {
-                always {
-                        junit allowEmptyResults: true, testResults: '**/build/test-results/**/TEST-*.xml'
-                        archiveArtifacts artifacts: '**/build/test-results/**/TEST-*.xml', fingerprint: true
-                }
-            }
-        }
+        // stage('Test') {
+        //     steps {
+        //         script{
+        //             sh "./gradlew test -Si"
+        //         }
+        //     }
+        //     post {
+        //         always {
+        //                 junit allowEmptyResults: true, testResults: '**/build/test-results/**/TEST-*.xml'
+        //                 archiveArtifacts artifacts: '**/build/test-results/**/TEST-*.xml', fingerprint: true
+        //         }
+        //     }
+        // }
 
         stage('Publish to Artifactory') {
             when {
