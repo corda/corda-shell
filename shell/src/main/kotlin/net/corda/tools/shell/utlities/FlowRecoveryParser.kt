@@ -3,9 +3,9 @@ package net.corda.tools.shell.utlities
 import net.corda.client.jackson.StringToClassParser
 import net.corda.client.jackson.getOrReport
 import net.corda.client.rpc.proxy.FlowRPCOps
+import net.corda.core.flows.FlowRecoveryQuery
 import net.corda.core.flows.StateMachineRunId
 import net.corda.core.messaging.CordaRPCOps
-import net.corda.nodeapi.flow.hospital.FlowRecoveryQuery
 import net.corda.tools.shell.InteractiveShell
 import net.corda.tools.shell.flattenInput
 import java.io.PrintWriter
