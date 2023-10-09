@@ -57,7 +57,6 @@ import net.corda.testing.driver.internal.checkpoint.CheckpointRpcHelper.checkpoi
 import net.corda.testing.internal.useSslRpcOverrides
 import net.corda.testing.node.User
 import net.corda.testing.node.internal.enclosedCordapp
-import net.corda.tools.shell.SSHServerTest.FlowICanRun
 import net.corda.tools.shell.utlities.ANSIProgressRenderer
 import org.apache.activemq.artemis.api.core.ActiveMQSecurityException
 import org.assertj.core.api.Assertions.assertThat
@@ -195,7 +194,7 @@ class InteractiveShellIntegrationTest {
             session.disconnect()
 
             // There are ANSI control characters involved, so we want to avoid direct byte to byte matching.
-            assertThat(linesWithDoneCount).hasSize(1)
+            assertThat(linesWithDoneCount).hasSize(3)
         }
     }
 
@@ -242,7 +241,7 @@ class InteractiveShellIntegrationTest {
                 session.disconnect() // TODO Simon make sure to close them
 
                 // There are ANSI control characters involved, so we want to avoid direct byte to byte matching.
-                assertThat(linesWithDoneCount).hasSize(1)
+                assertThat(linesWithDoneCount).hasSize(3)
 
                 successful = true
             }
@@ -412,7 +411,7 @@ class InteractiveShellIntegrationTest {
             assertEquals(4, json["flowCallStack"].size())
             val sendAndReceiveJson = json["suspendedOn"]["sendAndReceive"][0]
             assertEquals(bobNode.nodeInfo.singleIdentity().toString(), sendAndReceiveJson["session"]["peer"].asText())
-            assertEquals(SignedTransactionWithDistributionList::class.qualifiedName, sendAndReceiveJson["sentPayloadType"].asText())
+            assertEquals(SignedTransaction::class.qualifiedName, sendAndReceiveJson["sentPayloadType"].asText())
         }
     }
 
