@@ -65,7 +65,6 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.bouncycastle.util.io.Streams
 import org.crsh.text.RenderPrintWriter
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.jupiter.api.assertThrows
@@ -161,7 +160,6 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Ignore
     @Test(timeout = 300_000)
     fun `ssh runs flows via standalone shell`() {
         val user = User(
@@ -201,7 +199,6 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Ignore
     @Test(timeout = 300_000)
     fun `ssh run flows via standalone shell over ssl to node`() {
         val user = User(
@@ -589,5 +586,20 @@ class InteractiveShellIntegrationTest {
         override fun call() {
             waitForStateConsumption(stateRefs)
         }
+    }
+
+    @StartableByRPC
+    @InitiatingFlow
+    class FlowICanRun : FlowLogic<String>() {
+
+        private val HELLO_STEP = ProgressTracker.Step("Hello")
+
+        @Suspendable
+        override fun call(): String {
+            progressTracker?.currentStep = HELLO_STEP
+            return "bambam"
+        }
+
+        override val progressTracker: ProgressTracker? = ProgressTracker(HELLO_STEP)
     }
 }

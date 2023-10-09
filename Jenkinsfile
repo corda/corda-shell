@@ -86,7 +86,7 @@ pipeline {
         stage('Test') {
             steps {
                 script{
-                    sh "./gradlew test -Si"
+                    sh "./gradlew test integrationTest -Si"
                 }
             }
             post {

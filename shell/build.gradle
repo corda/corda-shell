@@ -108,6 +108,7 @@ dependencies {
     integrationTestImplementation "com.jcraft:jsch:$jschVersion"
 
     integrationTestImplementation "$cordaReleaseGroup:corda-node-driver:$cordaReleaseVersion"
+    integrationTestRuntimeOnly "org.apache.sshd:sshd-core:$sshdCoreVersion"
 
     testImplementation "org.mockito.kotlin:mockito-kotlin:$mockitoKotlinVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
