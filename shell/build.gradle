@@ -128,9 +128,12 @@ dependencies {
     integrationTestImplementation "$cordaReleaseGroup:corda-test-utils:$cordaEntReleaseVersion"
     integrationTestImplementation project(':test-cordapps:failing-flows:workflows')
 
+    integrationTestRuntimeOnly "org.apache.sshd:sshd-core:$sshdCoreVersion"
+
     testImplementation "org.mockito.kotlin:mockito-kotlin:$mockitoKotlinVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation 'com.github.bft-smart:library:master-v1.1-beta-g6215ec8-87'
+
 }
 
 tasks.withType(JavaCompile).configureEach {
