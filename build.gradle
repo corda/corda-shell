@@ -55,10 +55,14 @@ buildscript {
         } else {
             mavenCentral()
             maven {
-                url "${publicArtifactURL}/corda-releases"
+                url "${artifactoryContextUrl}/corda-releases"
                 content {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
+                }
+                credentials {
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
                 }
             }
         }
@@ -111,7 +115,13 @@ allprojects {
             }
         } else {
             mavenCentral()
-            maven { url "${publicArtifactURL}/corda-releases" }
+            maven {
+                url "${artifactoryContextUrl}/corda-releases"
+                credentials {
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+                }
+            }
             maven {
                 url "${publicArtifactURL}/corda-dependencies"
                 content {
