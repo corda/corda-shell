@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.type.TypeFactory
 import com.jcraft.jsch.ChannelExec
 import com.jcraft.jsch.JSch
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.mock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.mock
 import net.corda.client.jackson.JacksonSupport
 import net.corda.client.jackson.internal.valueAs
 import net.corda.client.rpc.RPCException
@@ -18,15 +18,7 @@ import net.corda.core.contracts.LinearState
 import net.corda.core.contracts.StateRef
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.crypto.SecureHash
-import net.corda.core.flows.CollectSignaturesFlow
-import net.corda.core.flows.FlowExternalAsyncOperation
-import net.corda.core.flows.FlowExternalOperation
-import net.corda.core.flows.FlowLogic
-import net.corda.core.flows.FlowSession
-import net.corda.core.flows.InitiatedBy
-import net.corda.core.flows.InitiatingFlow
-import net.corda.core.flows.SignTransactionFlow
-import net.corda.core.flows.StartableByRPC
+import net.corda.core.flows.*
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import net.corda.core.internal.concurrent.transpose
@@ -65,7 +57,6 @@ import net.corda.testing.driver.internal.checkpoint.CheckpointRpcHelper.checkpoi
 import net.corda.testing.internal.useSslRpcOverrides
 import net.corda.testing.node.User
 import net.corda.testing.node.internal.enclosedCordapp
-import net.corda.tools.shell.SSHServerTest.FlowICanRun
 import net.corda.tools.shell.utlities.ANSIProgressRenderer
 import org.apache.activemq.artemis.api.core.ActiveMQSecurityException
 import org.assertj.core.api.Assertions.assertThat
@@ -73,7 +64,6 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.bouncycastle.util.io.Streams
 import org.crsh.text.RenderPrintWriter
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.jupiter.api.assertThrows
@@ -169,7 +159,6 @@ class InteractiveShellIntegrationTest {
         }
     }
 
-    @Ignore
     @Test(timeout = 300_000)
     fun `ssh runs flows via standalone shell`() {
         val user = User(
@@ -205,11 +194,10 @@ class InteractiveShellIntegrationTest {
             session.disconnect()
 
             // There are ANSI control characters involved, so we want to avoid direct byte to byte matching.
-            assertThat(linesWithDoneCount).hasSize(1)
+            assertThat(linesWithDoneCount).hasSize(3)
         }
     }
 
-    @Ignore
     @Test(timeout = 300_000)
     fun `ssh run flows via standalone shell over ssl to node`() {
         val user = User(
@@ -253,7 +241,7 @@ class InteractiveShellIntegrationTest {
                 session.disconnect() // TODO Simon make sure to close them
 
                 // There are ANSI control characters involved, so we want to avoid direct byte to byte matching.
-                assertThat(linesWithDoneCount).hasSize(1)
+                assertThat(linesWithDoneCount).hasSize(3)
 
                 successful = true
             }
@@ -597,5 +585,20 @@ class InteractiveShellIntegrationTest {
         override fun call() {
             waitForStateConsumption(stateRefs)
         }
+    }
+
+    @StartableByRPC
+    @InitiatingFlow
+    class FlowICanRun : FlowLogic<String>() {
+
+        private val HELLO_STEP = ProgressTracker.Step("Hello")
+
+        @Suspendable
+        override fun call(): String {
+            progressTracker?.currentStep = HELLO_STEP
+            return "bambam"
+        }
+
+        override val progressTracker: ProgressTracker? = ProgressTracker(HELLO_STEP)
     }
 }
