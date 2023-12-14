@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.toList;
 import static net.corda.testing.internal.InternalTestUtilsKt.IS_S390X;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class InteractiveShellJavaTest {
