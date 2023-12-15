@@ -1,4 +1,4 @@
-import static org.gradle.api.JavaVersion.VERSION_1_8
+import static org.gradle.api.JavaVersion.VERSION_17
 
 buildscript {
 
@@ -12,6 +12,27 @@ buildscript {
             "unknown"
         }
     }()
+
+    ext.quasar_exclusions = [
+            'co.paralleluniverse**',
+            'groovy**',
+            'com.esotericsoftware.**',
+            'jdk**',
+            'junit**',
+            'kotlin**',
+            'net.rubygrapefruit.**',
+            'org.gradle.**',
+            'org.apache.**',
+            'org.jacoco.**',
+            'org.junit**',
+            'org.slf4j**',
+            'worker.org.gradle.**',
+            'org.mockito.kotlin**',
+            'org.assertj**',
+            'org.hamcrest**',
+            'org.mockito**',
+            'org.opentest4j**'
+    ]
 
     repositories {
         mavenLocal()
@@ -107,21 +128,28 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath "net.corda.plugins:cordapp:$gradlePluginsVersion"
         classpath "net.corda.plugins:quasar-utils:$gradlePluginsVersion"
-        classpath "net.corda.plugins:publish-utils:$gradlePluginsVersion"
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:$artifactoryPluginVersion"
     }
 }
 
 plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
-    id 'maven-publish'
+    id "org.ajoberstar.grgit" version "4.0.0"
+    id 'corda.root-publish'
 }
 
-apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'net.corda.plugins.publish-utils'
+// If the command line project option -PversionFromGit is added to the gradle invocation, we'll resolve
+// the latest git commit hash and timestamp and create a version postfix from that
+if (project.hasProperty("versionFromGit")) {
+    ext.versionSuffix = "${grgit.head().dateTime.format("yyyyMMdd_HHmmss")}-${grgit.head().abbreviatedId}"
+}
 
-version = "$cordaShellReleaseVersion$versionSuffix"
+if (ext.versionSuffix != "") {
+    ext.release_version = "${ext.baseVersion}-${ext.versionSuffix}".toString()
+} else {
+    ext.release_version = "${ext.baseVersion}".toString()
+}
 
+version = "$release_version"
 
 logger.quiet("Corda release version: {}", version)
 
@@ -158,22 +186,25 @@ allprojects {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
                     includeGroup 'co.paralleluniverse'
+                    includeGroup 'com.palominolabs.metrics'
                     includeGroup 'org.crashub'
                     includeGroup 'com.github.bft-smart'
                 }
+                metadataSources { artifact() }
             }
+            maven { url "${publicArtifactURL}/corda-dependencies-dev" }
             maven {
                 url "${artifactoryContextUrl}/corda-dev"
+                content {
+                    includeGroupByRegex 'net\\.corda(\\..*)?'
+                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                }
                 authentication {
                     basic(BasicAuthentication)
                 }
                 credentials {
-                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
-                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
-                }
-                content {
-                    includeGroupByRegex 'net\\.corda(\\..*)?'
-                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
                 }
             }
             maven {
@@ -231,7 +262,7 @@ allprojects {
     tasks.withType(Jar).configureEach { task ->
         // Includes War and Ear
         manifest {
-            attributes('Corda-Release-Version': cordaReleaseVersion)
+            attributes('Corda-Release-Version': cordaOSReleaseVersion)
             attributes('Corda-Platform-Version': cordaPlatformVersion)
             attributes('Corda-Revision': cordaRevision)
             attributes('Corda-Vendor': cordaBuildEdition)
@@ -252,53 +283,12 @@ allprojects {
     }
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
         kotlinOptions {
-            languageVersion = "1.2"
-            apiVersion = "1.2"
-            jvmTarget = VERSION_1_8
+            languageVersion = "1.8"
+            apiVersion = "1.8"
+            jvmTarget = VERSION_17
             javaParameters = true   // Useful for reflection.
-            freeCompilerArgs = ['-Xjvm-default=compatibility']
+            freeCompilerArgs = ['-Xjvm-default=all-compatibility']
             allWarningsAsErrors = false
         }
-    }
-}
-
-artifactory {
-    publish {
-        contextUrl = artifactoryContextUrl
-        repository {
-            repoKey = 'r3-corda-dev'
-            username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
-            password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
-        }
-
-        defaults {
-            // Root project applies the plugin (for this block) but does not need to be published
-            if (project != rootProject) {
-                publications(project.extensions.publish.name())
-            }
-        }
-    }
-}
-
-bintrayConfig {
-    user = System.getenv('CORDA_BINTRAY_USER') ?: System.getProperty('corda.bintray.user')
-    key = System.getenv('CORDA_BINTRAY_KEY') ?: System.getProperty('corda.bintray.key')
-    repo = 'corda'
-    org = 'r3'
-    licenses = ['Apache-2.0']
-    vcsUrl = 'https://github.com/corda/corda-shell'
-    projectUrl = 'https://github.com/corda/corda-shell'
-    gpgSign = true
-    gpgPassphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
-    publications = ['corda-shell', 'corda-standalone-shell']
-    license {
-        name = 'Apache-2.0'
-        url = 'https://www.apache.org/licenses/LICENSE-2.0'
-        distribution = 'repo'
-    }
-    developer {
-        id = 'R3'
-        name = 'R3'
-        email = 'dev@corda.net'
     }
 }

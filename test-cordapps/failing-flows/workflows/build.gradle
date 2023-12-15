@@ -5,12 +5,10 @@ apply plugin: 'net.corda.plugins.cordapp'
 description 'A collection of flows which throw various exceptions'
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
 
     // Corda integration dependencies
-    cordaCompile("$cordaOpenSourceReleaseGroup:corda-core:$cordaReleaseVersion") {
-        exclude group: 'co.paralleluniverse', module: 'quasar-core'
-    }
+    cordaProvided "$cordaOpenSourceReleaseGroup:corda-core:$cordaOSReleaseVersion"
 }
 
 cordapp {
