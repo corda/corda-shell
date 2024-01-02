@@ -17,10 +17,6 @@ import net.corda.core.flows.*
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import net.corda.core.internal.concurrent.transpose
-import net.corda.core.internal.createDirectories
-import net.corda.core.internal.div
-import net.corda.core.internal.inputStream
-import net.corda.core.internal.list
 import net.corda.core.messaging.ClientRpcSslOptions
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.messaging.startFlow
@@ -69,6 +65,10 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeoutException
 import java.util.zip.ZipInputStream
 import javax.security.auth.x500.X500Principal
+import kotlin.io.path.createDirectories
+import kotlin.io.path.div
+import kotlin.io.path.inputStream
+import kotlin.io.path.listDirectoryEntries
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -308,7 +308,7 @@ class InteractiveShellIntegrationTest {
             alice.checkpointsRpc.use { InteractiveShell.runDumpCheckpoints(it) }
             ExternalOperation.lock2.release()
 
-            val zipFile = (alice.baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME).list().first { "checkpoints_dump-" in it.toString() }
+            val zipFile = (alice.baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME).listDirectoryEntries().first { "checkpoints_dump-" in it.toString() }
             val json = ZipInputStream(zipFile.inputStream()).use { zip ->
                 zip.nextEntry
                 ObjectMapper().readTree(zip)
@@ -330,7 +330,7 @@ class InteractiveShellIntegrationTest {
             ExternalAsyncOperation.lock.acquire()
             alice.checkpointsRpc.use { InteractiveShell.runDumpCheckpoints(it) }
             ExternalAsyncOperation.future.complete(null)
-            val zipFile = (alice.baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME).list().first { "checkpoints_dump-" in it.toString() }
+            val zipFile = (alice.baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME).listDirectoryEntries().first { "checkpoints_dump-" in it.toString() }
             val json = ZipInputStream(zipFile.inputStream()).use { zip ->
                 zip.nextEntry
                 ObjectMapper().readTree(zip)
@@ -357,7 +357,7 @@ class InteractiveShellIntegrationTest {
                 alice.rpc.startFlow(::WaitForStateConsumptionFlow, stateRefs).returnValue.getOrThrow(10.seconds)
             }
             alice.checkpointsRpc.use { InteractiveShell.runDumpCheckpoints(it) }
-            val zipFile = (alice.baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME).list().first { "checkpoints_dump-" in it.toString() }
+            val zipFile = (alice.baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME).listDirectoryEntries().first { "checkpoints_dump-" in it.toString() }
             val json = ZipInputStream(zipFile.inputStream()).use { zip ->
                 zip.nextEntry
                 ObjectMapper().readTree(zip)
@@ -398,7 +398,7 @@ class InteractiveShellIntegrationTest {
             mockRenderPrintWriter()
             aliceNode.checkpointsRpc.use { InteractiveShell.runDumpCheckpoints(it) }
 
-            val zipFile = (aliceNode.baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME).list().first { "checkpoints_dump-" in it.toString() }
+            val zipFile = (aliceNode.baseDirectory / NodeStartup.LOGS_DIRECTORY_NAME).listDirectoryEntries().first { "checkpoints_dump-" in it.toString() }
             val json = ZipInputStream(zipFile.inputStream()).use { zip ->
                 zip.nextEntry
                 ObjectMapper().readTree(zip)

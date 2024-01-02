@@ -14,7 +14,6 @@ import net.corda.core.contracts.TimeWindow
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowTimeWindow
 import net.corda.core.internal.copyTo
-import net.corda.core.internal.inputStream
 import org.crsh.command.InvocationContext
 import rx.Observable
 import java.io.BufferedInputStream
@@ -28,6 +27,7 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.io.path.inputStream
 
 fun List<String>?.flattenInput(): String =
     if (this == null || isEmpty()) {

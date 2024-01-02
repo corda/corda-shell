@@ -2,7 +2,6 @@ package net.corda.tools.shell.standalone
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
-import net.corda.core.internal.div
 import net.corda.core.messaging.ClientRpcSslOptions
 import net.corda.core.utilities.NetworkHostAndPort
 import net.corda.nodeapi.internal.config.parseAs
@@ -11,6 +10,7 @@ import net.corda.tools.shell.ShellConfiguration.Companion.COMMANDS_DIR
 import picocli.CommandLine.Option
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.div
 
 class ShellCmdLineOptions {
     @Option(
