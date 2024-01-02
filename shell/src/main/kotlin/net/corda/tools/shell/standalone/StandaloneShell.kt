@@ -20,6 +20,7 @@ import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import kotlin.io.path.exists
 import kotlin.io.path.isRegularFile
+import kotlin.io.path.listDirectoryEntries
 
 fun main(args: Array<String>) {
     StandaloneShell().start(args)
@@ -48,7 +49,7 @@ D""".trimStart()
         if (cordappsDir == null || !cordappsDir.exists()) {
             emptyList()
         } else {
-            cordappsDir.filter {
+            cordappsDir.listDirectoryEntries().filter {
                 it.isRegularFile() && it.toString().endsWith(".jar")
             }.map { it.toUri().toURL() }.toList()
         }
