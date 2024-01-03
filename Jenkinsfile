@@ -6,8 +6,7 @@ killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
 def extraGradleCommands = '-x :shell:javadoc'
 
 boolean isReleaseBranch = (env.BRANCH_NAME =~ /^release\/.*/)
-boolean isReleaseTag = (env.TAG_NAME =~ /^release-.*/)
-boolean isRelease = isReleaseBranch || isReleaseTag
+boolean isRelease = (env.TAG_NAME =~ /^release-.*/)
 
 boolean isOSReleaseBranch = (env.BRANCH_NAME =~ /^release\/os\/.*/)
 boolean isEntReleaseBranch = (env.BRANCH_NAME =~ /^release\/ent\/.*/)
@@ -21,13 +20,13 @@ String publishOptions = isRelease ? "${extraGradleCommands}" : "${extraGradleCom
 String artifactoryBuildName = "Corda-Shell"
 
 // Artifactory build info links
-if(!isReleaseTag && isOSReleaseBranch){
+if(!isRelease && isOSReleaseBranch){
     artifactoryBuildName = "${artifactoryBuildName}-OS :: Jenkins :: snapshot :: ${env.BRANCH_NAME}"
-}else if (isReleaseTag && isOSReleaseTag){
+}else if (isRelease && isOSReleaseTag){
     artifactoryBuildName = "${artifactoryBuildName}-OS :: Jenkins :: ${env.BRANCH_NAME}"
-}else if(!isReleaseTag && isEntReleaseBranch){
+}else if(!isRelease && isEntReleaseBranch){
     artifactoryBuildName = "${artifactoryBuildName}-Ent :: Jenkins :: snapshot :: ${env.BRANCH_NAME}"
-}else if(isReleaseTag && isENTReleaseTag){
+}else if(isRelease && isENTReleaseTag){
     artifactoryBuildName = "${artifactoryBuildName}-Ent :: Jenkins :: ${env.BRANCH_NAME}"
 }
 
@@ -44,7 +43,7 @@ pipeline {
     }
 
     parameters {
-        booleanParam defaultValue: (isReleaseBranch || isReleaseTag), description: 'Publish artifacts to Artifactory?', name: 'DO_PUBLISH'
+        booleanParam defaultValue: (isReleaseBranch || isRelease), description: 'Publish artifacts to Artifactory?', name: 'DO_PUBLISH'
     }
 
     triggers {
@@ -67,7 +66,7 @@ pipeline {
 
         stage('Snyk Security') {
             when {
-                expression { isReleaseTag || isReleaseBranch }
+                expression { isRelease || isReleaseBranch }
             }
             steps {
                 script {
