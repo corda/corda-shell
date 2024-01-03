@@ -33,7 +33,7 @@ The shell has 2 artifacts for each way that it can be used:
     - `version`, `-V`: Print version information and exit.
 
 The `corda-shell` jar (not `corda-standalone-shell`) can still be used in as a standalone executable but will be missing any logging functionality.
-    
+     
 
 - A driver within a Corda node. Install the `corda-shell` jar in a node's `/drivers` directory to run the shell in the same terminal that starts the node. By default, a Corda node does not run the shell.
 
