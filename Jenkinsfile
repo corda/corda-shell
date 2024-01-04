@@ -16,7 +16,7 @@ boolean isENTReleaseTag = (env.TAG_NAME =~ /^release-ENT-.*/)
 
 def buildEdition = "Corda Enterprise Edition"
 
-String publishOptions = isRelease ? "${extraGradleCommands}" : "${extraGradleCommands} -PversionFromGit"
+String publishOptions = (isRelease || isReleaseBranch) ? "${extraGradleCommands}" : "${extraGradleCommands} -PversionFromGit"
 String artifactoryBuildName = "Corda-Shell"
 
 // Artifactory build info links
