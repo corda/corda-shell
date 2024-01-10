@@ -8,8 +8,6 @@ import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.google.common.io.Closeables
 import net.corda.core.contracts.UniqueIdentifier
-import net.corda.core.internal.copyTo
-import net.corda.core.internal.inputStream
 import org.crsh.command.InvocationContext
 import rx.Observable
 import java.io.BufferedInputStream
@@ -18,6 +16,8 @@ import java.nio.file.Paths
 import java.util.Collections
 import java.util.HashSet
 import java.util.UUID
+import kotlin.io.path.inputStream
+import kotlin.io.path.outputStream
 
 //region Extra serializers
 //
@@ -64,7 +64,7 @@ object InputStreamSerializer : JsonSerializer<InputStream>() {
                 gen.writeString("<not saved>")
             } else {
                 val path = Paths.get(toPath)
-                it.copyTo(path)
+                it.copyTo(path.outputStream())
                 gen.writeString("<saved to: ${path.toAbsolutePath()}>")
             }
         }
