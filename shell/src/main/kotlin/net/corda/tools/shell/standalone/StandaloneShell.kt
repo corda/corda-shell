@@ -4,9 +4,6 @@ import com.jcabi.manifests.Manifests
 import net.corda.cliutils.CordaCliWrapper
 import net.corda.cliutils.ExitCodes
 import net.corda.cliutils.start
-import net.corda.core.internal.exists
-import net.corda.core.internal.isRegularFile
-import net.corda.core.internal.list
 import net.corda.core.utilities.contextLogger
 import net.corda.tools.shell.InteractiveShell
 import net.corda.tools.shell.ShellConfiguration
@@ -21,6 +18,9 @@ import java.net.URL
 import java.net.URLClassLoader
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
+import kotlin.io.path.exists
+import kotlin.io.path.isRegularFile
+import kotlin.io.path.listDirectoryEntries
 import kotlin.streams.toList
 
 fun main(args: Array<String>) {
@@ -50,9 +50,9 @@ D""".trimStart()
         if (cordappsDir == null || !cordappsDir.exists()) {
             emptyList()
         } else {
-            cordappsDir.list {
-                it.filter { it.isRegularFile() && it.toString().endsWith(".jar") }.map { it.toUri().toURL() }.toList()
-            }
+            cordappsDir.listDirectoryEntries().filter {
+                it.isRegularFile() && it.toString().endsWith(".jar")
+            }.map { it.toUri().toURL() }.toList()
         }
 
     //Workaround in case console is not available

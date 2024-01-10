@@ -4,7 +4,7 @@ killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
 
 boolean isReleaseBranch = (env.BRANCH_NAME =~ /^release\/.*/)
 boolean isReleaseTag = (env.TAG_NAME =~ /^release-.*/)
-boolean isRelease = isReleaseBranch || isReleaseTag
+boolean isRelease = isReleaseBranch
 
 boolean isOSReleaseBranch = (env.BRANCH_NAME =~ /^release\/os\/.*/)
 boolean isEntReleaseBranch = (env.BRANCH_NAME =~ /^release\/ent\/.*/)
@@ -13,7 +13,7 @@ boolean isOSReleaseTag = (env.BRANCH_NAME =~ /^release-OS-.*/)
 boolean isENTReleaseTag = (env.TAG_NAME =~ /^release-ENT-.*/)
 
 def buildEdition = (isOSReleaseTag) ? "Corda Community Edition" : "Corda Open Source"
-String publishOptions = isRelease ? "-s --info" : "--no-daemon -s -PversionFromGit"
+String publishOptions = (isRelease || isReleaseBranch) ? "-s --info" : "--no-daemon -s -PversionFromGit"
 String artifactoryBuildName = "Corda-Shell"
 
 // Artifactory build info links
@@ -40,7 +40,7 @@ pipeline {
     }
 
     parameters {
-        booleanParam defaultValue: isRelease, description: 'Publish artifacts to Artifactory?', name: 'DO_PUBLISH'
+        booleanParam defaultValue: isRelease || isReleaseBranch, description: 'Publish artifacts to Artifactory?', name: 'DO_PUBLISH'
     }
 
     triggers {
