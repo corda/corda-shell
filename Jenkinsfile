@@ -4,7 +4,7 @@ killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
 
 boolean isReleaseBranch = (env.BRANCH_NAME =~ /^release\/.*/)
 boolean isReleaseTag = (env.TAG_NAME =~ /^release-.*/)
-boolean isRelease = isReleaseBranch
+boolean isRelease = isReleaseTag
 
 boolean isOSReleaseBranch = (env.BRANCH_NAME =~ /^release\/os\/.*/)
 boolean isEntReleaseBranch = (env.BRANCH_NAME =~ /^release\/ent\/.*/)
