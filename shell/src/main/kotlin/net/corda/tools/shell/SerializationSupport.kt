@@ -12,7 +12,7 @@ import com.google.common.io.Closeables
 import net.corda.client.jackson.internal.readValueAs
 import net.corda.core.contracts.TimeWindow
 import net.corda.core.contracts.UniqueIdentifier
-import net.corda.core.flows.FlowTimeWindow
+import net.corda.nodeapi.flow.hospital.FlowTimeWindow
 import net.corda.core.internal.copyTo
 import net.corda.core.internal.inputStream
 import org.crsh.command.InvocationContext

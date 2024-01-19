@@ -3,7 +3,7 @@ package net.corda.tools.shell
 import com.nhaarman.mockito_kotlin.argThat
 import com.nhaarman.mockito_kotlin.mock
 import net.corda.client.rpc.proxy.NodeFlowStatusRpcOps
-import net.corda.core.flows.FlowTimeWindow
+import net.corda.nodeapi.flow.hospital.FlowTimeWindow
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.ext.api.flow.FlowStatusQueryProvider

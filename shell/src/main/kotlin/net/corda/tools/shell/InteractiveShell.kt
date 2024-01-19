@@ -18,7 +18,7 @@ import net.corda.core.concurrent.CordaFuture
 import net.corda.core.contracts.TimeWindow
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowLogic
-import net.corda.core.flows.FlowTimeWindow
+import net.corda.nodeapi.flow.hospital.FlowTimeWindow
 import net.corda.core.flows.StateMachineRunId
 import net.corda.core.internal.Emoji
 import net.corda.core.internal.VisibleForTesting

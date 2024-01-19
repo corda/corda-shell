@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import net.corda.core.contracts.TimeWindow
 import net.corda.core.contracts.UniqueIdentifier
-import net.corda.core.flows.FlowTimeWindow
+import net.corda.nodeapi.flow.hospital.FlowTimeWindow
 import org.junit.Before
 import org.junit.Test
 import java.time.Duration
