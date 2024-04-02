@@ -262,7 +262,7 @@ allprojects {
     tasks.withType(Jar).configureEach { task ->
         // Includes War and Ear
         manifest {
-            attributes('Corda-Release-Version': cordaOSReleaseVersion)
+            attributes('Corda-Release-Version': cordaReleaseVersion)
             attributes('Corda-Platform-Version': cordaPlatformVersion)
             attributes('Corda-Revision': cordaRevision)
             attributes('Corda-Vendor': cordaBuildEdition)
