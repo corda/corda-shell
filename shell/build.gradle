@@ -57,8 +57,8 @@ dependencies {
     implementation "$cordaReleaseGroup:corda-jackson:$cordaReleaseVersion"
 
     // Bouncy castle support needed for X509 certificate manipulation
-    testImplementation "org.bouncycastle:bcprov-lts8on:${bouncycastleVersion}"
-    testImplementation "org.bouncycastle:bcpkix-lts8on:${bouncycastleVersion}"
+    testImplementation "org.bouncycastle:bcprov-jdk18on:${bouncycastleVersion}"
+    testImplementation "org.bouncycastle:bcpkix-jdk18on:${bouncycastleVersion}"
 
     testImplementation "co.paralleluniverse:quasar-core:$quasar_version"
 
