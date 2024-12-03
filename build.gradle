@@ -157,6 +157,13 @@ allprojects {
         }
     }
 
+    tasks.register("javadocJar", Jar) {
+        dependsOn(tasks.javadoc)
+        archiveBaseName.set("corda-${project.name}")
+        archiveClassifier.set("javadoc")
+        from("${buildDir}/docs/javadoc")
+    }
+
     configurations {
         configureEach {
             resolutionStrategy {
@@ -189,6 +196,31 @@ allprojects {
             javaParameters = true   // Useful for reflection.
             freeCompilerArgs = ['-Xjvm-default=all-compatibility']
             allWarningsAsErrors = false
+        }
+    }
+}
+
+ext.configureCommonPom = { pom ->
+    pom.url.set("https://github.com/corda/corda-shell")
+    pom.description.set("A standalone shell for interacting with Corda nodes and services.")
+
+    pom.scm {
+        url.set("https://github.com/corda/corda-shell")
+    }
+
+    pom.licenses {
+        license {
+            name.set("Apache-2.0")
+            url.set("https://www.apache.org/licenses/LICENSE-2.0")
+            distribution.set("repo")
+        }
+    }
+
+    pom.developers {
+        developer {
+            id.set("R3")
+            name.set("R3")
+            email.set("dev@corda.net")
         }
     }
 }

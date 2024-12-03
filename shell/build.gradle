@@ -173,8 +173,13 @@ publishing {
     publications {
         maven(MavenPublication) {
             artifactId 'corda-shell'
-            artifact(shadowJar) {
+            artifact(shadowJar)
+            artifact(tasks.named("javadocJar"))
+
+            pom {
+                rootProject.configureCommonPom(delegate)
             }
+
         }
     }
 }
