@@ -96,10 +96,6 @@ task integrationTest(type: Test) {
     classpath = sourceSets.integrationTest.runtimeClasspath
 }
 
-jar {
-    archiveClassifier = 'ignore'
-}
-
 shadowJar {
     archiveBaseName = 'corda-shell'
     archiveClassifier = ''
@@ -123,17 +119,4 @@ artifacts {
 publish {
     dependenciesFrom configurations.cordaShellDependencies
     name shadowJar.archiveBaseName
-}
-
-publishing {
-publications {
-    jarPublication(MavenPublication) {
-        from components.java
-        artifactId = 'corda-shell-snyk-scanner'
-        pom {
-            name = 'corda-shell-snyk-scanner'
-            description = 'Corda Shell for use with Snyk'
-        }
-    }
-}
 }
