@@ -50,5 +50,4 @@ artifacts {
 publish {
     dependenciesFrom configurations.cordaShellDependencies
     name shadowJar.archiveBaseName
-    disableDefaultJar = true
 }
