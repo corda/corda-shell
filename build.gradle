@@ -156,6 +156,36 @@ allprojects {
     }
 }
 
+
+// Publish the default jar for all submodules, These are not for external consumption.
+// We must generate a jar which has a pom.xml with a full dependency list for Snyk to evaluate.
+// The shadow jar removes this information, as those dependencies are embedded in the jar. 
+subprojects {
+    afterEvaluate { project ->
+        if (project.name in ['shell', 'standalone-shell']) {
+            apply plugin: 'maven-publish'
+
+            publishing {
+                publications {
+                    "${project.name}-jarPublication"(MavenPublication) {
+                        from components.java
+                        artifactId = "corda-${project.name}-snyk-scanner"
+                        pom {
+                            name = "corda-${project.name}-snyk-scanner"
+                            description = "Corda ${project.name} for use with Snyk"
+                        }
+                    }
+                }
+            }
+
+
+            jar {
+                archiveClassifier = 'R3-internal'
+            }
+        }
+    }
+}
+
 artifactory {
     publish {
         contextUrl = artifactoryContextUrl
@@ -168,7 +198,8 @@ artifactory {
         defaults {
             // Root project applies the plugin (for this block) but does not need to be published
             if (project != rootProject) {
-                publications(project.extensions.publish.name())
+                def pubNames = project.publishing.publications*.name
+                publications(pubNames.toArray(new String[0]))
             }
         }
     }
