@@ -97,7 +97,6 @@ task integrationTest(type: Test) {
 }
 
 jar {
-    enabled = false
     archiveClassifier = 'ignore'
 }
 
@@ -124,5 +123,17 @@ artifacts {
 publish {
     dependenciesFrom configurations.cordaShellDependencies
     name shadowJar.archiveBaseName
-    disableDefaultJar = true
+}
+
+publishing {
+publications {
+    jarPublication(MavenPublication) {
+        from components.java
+        artifactId = 'corda-shell-snyk-scanner'
+        pom {
+            name = 'corda-shell-snyk-scanner'
+            description = 'Corda Shell for use with Snyk'
+        }
+    }
+}
 }
