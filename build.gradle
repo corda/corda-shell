@@ -157,8 +157,8 @@ allprojects {
 }
 
 
-// Publish the default jar for all submodules, These are not for external consumtion.
-// We must generate a jar which has a pom.xml with a full dependency list for snyk to evaluate.
+// Publish the default jar for all submodules, These are not for external consumption.
+// We must generate a jar which has a pom.xml with a full dependency list for Snyk to evaluate.
 // The shadow jar removes this information, as those dependencies are embedded in the jar. 
 subprojects {
     afterEvaluate { project ->
