@@ -180,7 +180,7 @@ subprojects {
 
 
             jar {
-                archiveClassifier = 'r3-internal'
+                archiveClassifier = 'R3-internal'
             }
         }
     }
