@@ -96,11 +96,6 @@ task integrationTest(type: Test) {
     classpath = sourceSets.integrationTest.runtimeClasspath
 }
 
-jar {
-    enabled = false
-    archiveClassifier = 'ignore'
-}
-
 shadowJar {
     archiveBaseName = 'corda-shell'
     archiveClassifier = ''
@@ -124,5 +119,4 @@ artifacts {
 publish {
     dependenciesFrom configurations.cordaShellDependencies
     name shadowJar.archiveBaseName
-    disableDefaultJar = true
 }
