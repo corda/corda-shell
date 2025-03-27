@@ -31,11 +31,6 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << '-proc:none'
 }
 
-jar {
-    enabled = false
-    archiveClassifier = 'ignore'
-}
-
 shadowJar {
     archiveBaseName = 'corda-standalone-shell'
     archiveClassifier = ''
@@ -55,5 +50,4 @@ artifacts {
 publish {
     dependenciesFrom configurations.cordaShellDependencies
     name shadowJar.archiveBaseName
-    disableDefaultJar = true
 }
