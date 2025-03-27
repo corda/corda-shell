@@ -29,11 +29,6 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << '-proc:none'
 }
 
-jar {
-    enabled = false
-    archiveClassifier = 'ignore'
-}
-
 shadowJar {
     archiveBaseName = 'corda-standalone-shell'
     archiveClassifier = ''
