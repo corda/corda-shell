@@ -274,7 +274,8 @@ artifactory {
         defaults {
             // Root project applies the plugin (for this block) but does not need to be published
             if (project != rootProject) {
-                publications(project.extensions.publish.name())
+                def pubNames = project.publishing.publications*.name
+                publications(pubNames.toArray(new String[0]))
             }
         }
     }
