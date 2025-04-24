@@ -158,7 +158,7 @@ allprojects {
 
 
 // Publish the default jar for all submodules, These are not for external consumption.
-// We must generate a jar which has a pom.xml with a full dependency list for Snyk to evaluate.
+// We must generate a jar which has a pom.xml with a full dependency list for vulnerability tool to evaluate.
 // The shadow jar removes this information, as those dependencies are embedded in the jar. 
 subprojects {
     afterEvaluate { project ->
@@ -169,10 +169,10 @@ subprojects {
                 publications {
                     "${project.name}-jarPublication"(MavenPublication) {
                         from components.java
-                        artifactId = "corda-${project.name}-snyk-scanner"
+                        artifactId = "corda-${project.name}-thin-with-deps"
                         pom {
-                            name = "corda-${project.name}-snyk-scanner"
-                            description = "Corda ${project.name} for use with Snyk"
+                            name = "corda-${project.name}-thin-with-deps"
+                            description = "Corda ${project.name} for vulnerability checking"
                         }
                     }
                 }
