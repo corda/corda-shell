@@ -238,6 +238,21 @@ allprojects {
             attributes('Automatic-Module-Name': "net.corda.${task.project.name.replaceAll('-', '.')}")
         }
     }
+
+    configurations {
+        configureEach {
+            resolutionStrategy {
+                eachDependency { details ->
+                    // SNYK-JAVA-ORGAPACHESSHD-7676258 / CVE-2024-41909
+                    // SNYK-JAVA-ORGAPACHESSHD-3121053 / CVE-2022-45047
+                    // SNYK-JAVA-ORGAPACHESSHD-1316688 / CVE-2021-30129
+                    if (details.requested.group == 'org.apache.sshd' && details.requested.name == 'sshd-core') {
+                        details.useVersion sshdCoreVersion
+                    }
+                }
+            }
+        }
+    }
 }
 
 dependencies {
