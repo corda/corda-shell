@@ -132,6 +132,18 @@ allprojects {
             attributes('Automatic-Module-Name': "net.corda.${task.project.name.replaceAll('-', '.')}")
         }
     }
+
+    configurations {
+        configureEach {
+            resolutionStrategy {
+                eachDependency { details ->
+                    if (details.requested.group == 'org.apache.sshd' && details.requested.name == 'sshd-core') {
+                        details.useVersion sshdCoreVersion
+                    }
+                }
+            }
+        }
+    }
 }
 
 dependencies {
