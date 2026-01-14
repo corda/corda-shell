@@ -1,7 +1,7 @@
 #! groovy
 @Library('corda-shared-build-pipeline-steps@5.3') _
 
-/**
+/*
  * Forward merge any changes in current branch to the branch with following version.
  *
  * Please note, the branches names are intentionally separated as variables, to minimised conflicts
