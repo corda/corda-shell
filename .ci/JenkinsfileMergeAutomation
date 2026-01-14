@@ -28,6 +28,6 @@ String targetBranch = 'release/os/4.10'
 forwardMerger(
     targetBranch: targetBranch,
     originBranch: originBranch,
-    slackChannel: '#shared-library-forward-merge',
-    raiseDraftPR: false,
+    slackChannel: '#c4-forward-merge-bot-notifications',
+    cloneTickets: true,
 )
