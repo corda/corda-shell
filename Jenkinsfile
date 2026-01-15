@@ -34,7 +34,6 @@ pipeline {
     options {
         timestamps()
         ansiColor('xterm')
-        overrideIndexTriggers(false)
         timeout(time: 1, unit: 'HOURS')
         buildDiscarder(logRotator(daysToKeepStr: '14', artifactDaysToKeepStr: '14'))
     }
