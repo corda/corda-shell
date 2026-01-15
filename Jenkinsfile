@@ -45,7 +45,7 @@ pipeline {
     }
 
     triggers {
-        cron(isReleaseBranch ? '@midnight' : '')
+        cron (isReleaseBranch ? '@midnight' : '')
     }
 
     environment {
@@ -59,18 +59,6 @@ pipeline {
     }
 
     stages {
-        
-        stage('Read properties') {
-            steps {
-                script {
-                    def props = readProperties file: 'gradle.properties'
-                    groupId = props['cordaReleaseGroup']
-                    def artifactId = 'corda-shell'
-                    version = props['cordaShellReleaseVersion']
-                    echo "${groupId}-${artifactId}-${version}"
-                }
-            }
-        }
 
         stage('Snyk Security') {
             when {
@@ -90,7 +78,7 @@ pipeline {
         stage('Build') {
             steps {
                 script{
-                    sh "./gradlew clean assemble ${extraGradleCommands} -Si"
+                    sh "./gradlew clean assemble -Si ${extraGradleCommands}"
                 }
             }
         }
@@ -116,7 +104,7 @@ pipeline {
             steps {
                 script{
                         def props = readProperties file: 'gradle.properties'
-                        def groupId = props['cordaReleaseGroup']                    
+                        def groupId = props['cordaReleaseGroup']
                         boolean isOpenSource = groupId.equals("net.corda") ? true : false
                         def snapshotRepo
                         def releasesRepo
