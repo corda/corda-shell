@@ -5,9 +5,8 @@ killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
 
 def extraGradleCommands = '-x :shell:javadoc'
 
-                
 boolean isReleaseBranch = (env.BRANCH_NAME =~ /^release\/.*/)
-boolean isRelease = (env.TAG_NAME =~ /^release-.*/) 
+boolean isRelease = (env.TAG_NAME =~ /^release-.*/)
 
 boolean isOSReleaseBranch = (env.BRANCH_NAME =~ /^release\/os\/.*/)
 boolean isEntReleaseBranch = (env.BRANCH_NAME =~ /^release\/ent\/.*/)
@@ -51,7 +50,6 @@ pipeline {
 
     environment {
         ARTIFACTORY_BUILD_NAME = "${artifactoryBuildName}"
-        MAVEN_LOCAL_PUBLISH = "${env.WORKSPACE}/${mavenLocal}"
         CORDA_BUILD_EDITION = "${buildEdition}"
         ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
         CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
@@ -117,6 +115,8 @@ pipeline {
             }
             steps {
                 script{
+                        def props = readProperties file: 'gradle.properties'
+                        def groupId = props['cordaReleaseGroup']                    
                         boolean isOpenSource = groupId.equals("net.corda") ? true : false
                         def snapshotRepo
                         def releasesRepo
