@@ -1,5 +1,6 @@
 @Library('corda-shared-build-pipeline-steps')
 import static com.r3.build.BuildControl.killAllExistingBuildsForJob
+
 killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
 
 boolean isReleaseBranch = (env.BRANCH_NAME =~ /^release\/.*/)
@@ -34,7 +35,6 @@ pipeline {
     options {
         timestamps()
         ansiColor('xterm')
-        overrideIndexTriggers(false)
         timeout(time: 1, unit: 'HOURS')
         buildDiscarder(logRotator(daysToKeepStr: '14', artifactDaysToKeepStr: '14'))
     }
@@ -58,7 +58,7 @@ pipeline {
         JAVA_HOME="/usr/lib/jvm/java-17-amazon-corretto"
     }
 
-    stages { 
+    stages {
 
         stage('Snyk Security') {
             when {
