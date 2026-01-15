@@ -37,7 +37,6 @@ pipeline {
     options {
         timestamps()
         ansiColor('xterm')
-        overrideIndexTriggers(false)
         timeout(time: 1, unit: 'HOURS')
         buildDiscarder(logRotator(daysToKeepStr: '14', artifactDaysToKeepStr: '14'))
     }
@@ -52,7 +51,6 @@ pipeline {
 
     environment {
         ARTIFACTORY_BUILD_NAME = "${artifactoryBuildName}"
-        MAVEN_LOCAL_PUBLISH = "${env.WORKSPACE}/${mavenLocal}"
         CORDA_BUILD_EDITION = "${buildEdition}"
         ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
         CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
