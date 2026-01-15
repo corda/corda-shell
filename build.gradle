@@ -313,7 +313,7 @@ subprojects {
                 publications {
                     "${project.name}-jarPublication"(MavenPublication) {
                         from components.java
-                        artifactId = "corda-${project.name}-thin-with-depsr"
+                        artifactId = "corda-${project.name}-thin-with-deps"
                         pom {
                             name = "corda-${project.name}-thin-with-deps"
                             description = "Corda ${project.name} for vulnerability checking"
