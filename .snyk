@@ -13,7 +13,7 @@ ignore:
           RPC SSL client connections Artemis is used which calls into netty. The
           default value for verifyHost is true for Artemis client connectors so
           verification of the host name in netty does occur.
-        expires: 2023-03-21T11:45:42.976Z
+        expires: 2023-06-28T11:45:42.976Z
         created: 2022-12-13T11:45:42.981Z
   SNYK-JAVA-ORGJETBRAINSKOTLIN-2628385:
     - '*':
@@ -23,7 +23,7 @@ ignore:
           time for Corda we do not use Multiplatform Gradle Projects so are not
           affected by this vulnerability. In addition as it is a build time
           vulnerability released artifacts are not affected.
-        expires: 2023-03-21T11:52:35.855Z
+        expires: 2023-06-28T11:52:35.855Z
         created: 2022-12-13T11:52:35.870Z
   SNYK-JAVA-ORGJETBRAINSKOTLIN-2393744:
     - '*':
@@ -32,7 +32,7 @@ ignore:
           temporary files (via Kotlin functions) with insecure permissions.
           Corda does not use any of the vulnerable functions so it not
           susceptible to this vulnerability.
-        expires: 2023-03-21T13:39:03.244Z
+        expires: 2023-06-28T13:39:03.244Z
         created: 2022-12-13T13:39:03.262Z
   SNYK-JAVA-ORGYAML-3016888:
     - '*':
@@ -46,7 +46,7 @@ ignore:
           XML files are used here to define the changes not YAML and therefore
           the Corda node itself is not exposed to this deserialisation
           vulnerability.
-        expires: 2023-03-21T13:39:49.450Z
+        expires: 2023-06-28T13:39:49.450Z
         created: 2022-12-13T13:39:49.470Z
   SNYK-JAVA-ORGYAML-2806360:
     - '*':
@@ -59,7 +59,7 @@ ignore:
           used to apply the database migration changes. XML files are used here
           to define the changes not YAML and therefore the Corda node itself is
           not exposed to this DOS vulnerability.
-        expires: 2023-03-21T13:40:55.262Z
+        expires: 2023-06-28T13:40:55.262Z
         created: 2022-12-13T13:40:55.279Z
   SNYK-JAVA-ORGLIQUIBASE-2419059:
     - '*':
@@ -74,7 +74,7 @@ ignore:
           exploit this vulnerability would need access to the server with the
           XML input files, and specifically the access and ability to change JAR
           files on the file system that make up the Corda installation.
-        expires: 2023-03-21T13:42:11.552Z
+        expires: 2023-06-28T13:42:11.552Z
         created: 2022-12-13T13:42:11.570Z
   SNYK-JAVA-ORGYAML-3113851:
     - '*':
@@ -100,7 +100,7 @@ ignore:
           their own assessment. This vulnerability relates to deeply nested
           untyped Object or Array values (3000 levels deep). Only CorDapps with
           these types at this level of nesting are potentially susceptible.
-        expires: 2023-03-12T16:50:57.921Z
+        expires: 2023-06-28T16:50:57.921Z
         created: 2022-12-13T16:50:57.943Z
   SNYK-JAVA-COMFASTERXMLJACKSONCORE-3038424:
     - '*':
@@ -112,7 +112,7 @@ ignore:
           their own assessment. This vulnerability relates to deeply nested
           untyped Object or Array values (3000 levels deep). Only CorDapps with
           these types at this level of nesting are potentially susceptible.
-        expires: 2023-03-12T16:52:30.722Z
+        expires: 2023-06-28T16:52:30.722Z
         created: 2022-12-13T16:52:30.747Z
   SNYK-JAVA-ORGYAML-3016891:
     - '*':
@@ -126,7 +126,7 @@ ignore:
           XML files are used here to define the changes not YAML and therefore
           the Corda node itself is not exposed to this deserialisation
           vulnerability. 
-        expires: 2023-03-12T17:00:51.957Z
+        expires: 2023-06-28T17:00:51.957Z
         created: 2022-12-13T17:00:51.970Z
   SNYK-JAVA-ORGYAML-3016889:
     - '*':
@@ -140,7 +140,7 @@ ignore:
           XML files are used here to define the changes not YAML and therefore
           the Corda node itself is not exposed to this deserialisation
           vulnerability.
-        expires: 2023-03-12T17:02:02.538Z
+        expires: 2023-06-28T17:02:02.538Z
         created: 2022-12-13T17:02:02.564Z
   SNYK-JAVA-IONETTY-473694:
     - '*':
@@ -150,18 +150,8 @@ ignore:
           but it is not used in Corda, which uses a custom binary protocol
           secured by mutually authenticated TLS. The vulnerability relating to
           HTTP request smuggling is not exposed.
-        expires: 2023-03-28T11:16:29.187Z
+        expires: 2023-06-28T11:16:29.187Z
         created: 2022-12-29T11:16:29.207Z
-  SNYK-JAVA-IONETTY-3167773:
-    - '*':
-        reason: >-
-          Corda does not use Netty HTTP (and does not use HTTP in the P2P
-          protocol) . This is a transitive dependency of Netty comms library,
-          but it is not used in Corda, which uses a custom binary protocol
-          secured by mutually authenticated TLS. The vulnerability relating to
-          HTTP Response splitting is not exposed.
-        expires: 2023-03-03T12:12:52.060Z
-        created: 2023-01-04T12:12:52.066Z
   SNYK-JAVA-ORGYAML-3152153:
     - '*':
         reason: >-
@@ -172,7 +162,7 @@ ignore:
           not yaml. So given this Corda is not susceptible to this
           vulnerability.Cordapp authors should exercise their own judgment if
           using this library directly in their cordapp.
-        expires: 2023-03-03T12:13:26.559Z
+        expires: 2023-06-28T12:13:26.559Z
         created: 2023-01-04T12:13:26.593Z
   SNYK-JAVA-ORGAPACHECOMMONS-3043138:
     - '*':
@@ -189,14 +179,14 @@ ignore:
           default list of interpolators in commons-text those interpolators that
           can execute code or access a remote server. For these reasons Corda is
           not susceptible to this vulnerability.
-        expires: 2023-03-03T13:59:15.928Z
+        expires: 2023-06-28T13:59:15.928Z
         created: 2023-01-04T13:59:15.940Z
   SNYK-JAVA-ORGAPACHESSHD-1316688:
     - '*':
         reason: >-
           Corda does not use the SFTP or port forwarding functionality of
           sshd-core so is not susceptibleto this vulnerability.
-        expires: 2023-03-03T14:01:05.220Z
+        expires: 2023-06-28T14:01:05.220Z
         created: 2023-01-04T14:01:05.238Z
   SNYK-JAVA-ORGCODEHAUSGROOVY-30076:
     - '*':
@@ -208,7 +198,7 @@ ignore:
           explicitly disabled in Corda, and is not used in any capacity. This
           vulnerability is therefore not exposed and does not pose a risk to
           Corda.
-        expires: 2023-03-03T14:02:48.486Z
+        expires: 2023-06-28T14:02:48.486Z
         created: 2023-01-04T14:02:48.525Z
   SNYK-JAVA-ORGCODEHAUSGROOVY-31510:
     - '*':
@@ -220,7 +210,7 @@ ignore:
           explicitly disabled in Corda, and is not used in any capacity. This
           vulnerability is therefore not exposed and does not pose a risk to
           Corda.
-        expires: 2023-03-03T14:04:25.500Z
+        expires: 2023-06-28T14:04:25.500Z
         created: 2023-01-04T14:04:25.530Z
   SNYK-JAVA-ORGAPACHECOMMONS-2944970:
     - '*':
@@ -230,7 +220,7 @@ ignore:
           which is the component using commons-configuration2. The corda shell
           uses artemis client. We aim to remove the artemis server component
           from the shell in a future release.
-        expires: 2023-03-08T12:05:43.872Z
+        expires: 2023-06-28T12:05:43.872Z
         created: 2023-01-09T12:05:43.910Z
   SNYK-JAVA-ORGAPACHESSHD-3121053:
     - '*':
@@ -241,21 +231,14 @@ ignore:
           with the vulnerability SimpleGeneratorHostKeyProvider is not called in
           the shell or any of the transitive dependencies. For these reasons the
           Corda shell is not susceptible to this vulnerability.
-        expires: 2023-03-08T12:02:56.296Z
+        expires: 2023-06-28T12:02:56.296Z
         created: 2023-01-09T12:02:56.319Z
-  SNYK-JAVA-CHQOSLOGBACK-1726923:
-    - '*':
-        reason: >-
-          The corda shell uses log4j not logback for its logging implementation,
-          so is not susceptible to this vulnerability.
-        expires: 2023-03-08T12:07:30.325Z
-        created: 2023-01-09T12:07:30.362Z
   SNYK-JAVA-ORGAPACHECOMMONS-559327:
     - '*':
         reason: >-
           The corda shell does not perform any database access via JDBC (or any
           other means) and does not use any database connection pooling so is
           not susceptible to this vulnerability
-        expires: 2023-03-08T12:08:51.553Z
+        expires: 2023-06-28T12:08:51.553Z
         created: 2023-01-09T12:08:51.571Z
 patch: {}
