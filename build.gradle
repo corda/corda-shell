@@ -229,12 +229,6 @@ ext.configureCommonPom = { pom ->
 // We must generate a jar which has a pom.xml with a full dependency list for vulnerability tools to evaluate.
 // The shadow jar removes this information, as those dependencies are embedded in the jar. 
 subprojects {
-    plugins.withId("java") {
-        java {
-            withSourcesJar()
-        }
-    }
-
     afterEvaluate { project ->
         if (project.name in ['shell', 'standalone-shell']) {
             apply plugin: 'maven-publish'
