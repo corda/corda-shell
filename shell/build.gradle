@@ -170,9 +170,12 @@ publishing {
             artifactId 'corda-shell'
             artifact(shadowJar)
             artifact(tasks.named("javadocJar"))
+            artifact(tasks.named("sourcesJar"))
 
             pom {
                 rootProject.configureCommonPom(delegate)
+                name = "corda-${project.name}"
+                description = "Corda ${project.name} optional driver"
             }
         }
     }
