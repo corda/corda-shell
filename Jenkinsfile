@@ -62,7 +62,7 @@ pipeline {
 
         stage('Snyk Security') {
             when {
-                expression { isRelease }
+                expression { isRelease || isReleaseBranch }
             }
             steps {
                 script {
