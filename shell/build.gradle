@@ -51,7 +51,7 @@ dependencies {
     implementation "com.google.guava:guava:$guavaVersion"
     implementation "org.apache.commons:commons-lang3:$commonsLang3Version"
     implementation "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
-    implementation "org.apache.activemq:artemis-commons:$artemisVersion"
+    implementation "org.apache.artemis:artemis-commons:$artemisVersion"
 
     // Jackson support: serialisation to/from JSON, YAML, etc.
     implementation "$cordaReleaseGroup:corda-jackson:$cordaReleaseVersion"
