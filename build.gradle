@@ -81,6 +81,7 @@ buildscript {
                 }
             }
             mavenCentral()
+            maven { url "${publicArtifactURL}/jcenter-backup" }
         }
         maven {
             url "${artifactoryContextUrl}/r3-corda-dev"
@@ -225,6 +226,7 @@ allprojects {
                 }
             }
             mavenCentral()
+            maven { url "${publicArtifactURL}/jcenter-backup" }
         }
     }
 
