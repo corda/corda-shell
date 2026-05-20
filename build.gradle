@@ -49,6 +49,7 @@ buildscript {
             maven { url "${publicArtifactURL}/corda-releases" }
             maven { url "${publicArtifactURL}/corda-dependencies" }
             mavenCentral()
+            maven { url "${publicArtifactURL}/jcenter-backup" }
         }
     }
     dependencies {
@@ -119,6 +120,7 @@ allprojects {
             maven { url "${publicArtifactURL}/corda-releases" }
             maven { url "${publicArtifactURL}/corda-dependencies" }
             mavenCentral()
+            maven { url "${publicArtifactURL}/jcenter-backup" }
         }
     }
 
