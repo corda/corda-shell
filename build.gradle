@@ -1,4 +1,4 @@
-import static org.gradle.api.JavaVersion.VERSION_1_8
+import static org.gradle.api.JavaVersion.VERSION_17
 
 buildscript {
 
@@ -12,6 +12,27 @@ buildscript {
             "unknown"
         }
     }()
+
+    ext.quasar_exclusions = [
+            'co.paralleluniverse**',
+            'groovy**',
+            'com.esotericsoftware.**',
+            'jdk**',
+            'junit**',
+            'kotlin**',
+            'net.rubygrapefruit.**',
+            'org.gradle.**',
+            'org.apache.**',
+            'org.jacoco.**',
+            'org.junit**',
+            'org.slf4j**',
+            'worker.org.gradle.**',
+            'org.mockito.kotlin**',
+            'org.assertj**',
+            'org.hamcrest**',
+            'org.mockito**',
+            'org.opentest4j**'
+    ]
 
     repositories {
         mavenLocal()
@@ -54,21 +75,22 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath "net.corda.plugins:quasar-utils:$gradlePluginsVersion"
-        classpath "net.corda.plugins:publish-utils:$gradlePluginsVersion"
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:$artifactoryPluginVersion"
     }
 }
 
 plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
-    id 'maven-publish'
+    id "org.ajoberstar.grgit" version "4.0.0"
+    id 'corda.root-publish'
 }
 
-apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'net.corda.plugins.publish-utils'
+// If the command line project option -PversionFromGit is added to the gradle invocation, we'll resolve
+// the latest git commit hash and timestamp and create a version postfix from that
+if (project.hasProperty("versionFromGit")) {
+    ext.versionSuffix = "-${grgit.head().dateTime.format("yyyyMMdd_HHmmss")}-${grgit.head().abbreviatedId}"
+}
 
 version = "$cordaShellReleaseVersion$versionSuffix"
-
 
 logger.quiet("Corda release version: {}", version)
 
@@ -100,7 +122,9 @@ allprojects {
                     includeGroup 'co.paralleluniverse'
                     includeGroup 'org.crashub'
                     includeGroup 'com.github.bft-smart'
+                    includeGroup 'com.palominolabs.metrics'
                 }
+                metadataSources { artifact() }
             }
             maven {
                 url "${publicArtifactURL}/corda-dev"
@@ -132,6 +156,26 @@ allprojects {
             attributes('Automatic-Module-Name': "net.corda.${task.project.name.replaceAll('-', '.')}")
         }
     }
+
+    tasks.register("javadocJar", Jar) {
+        dependsOn(tasks.javadoc)
+        archiveBaseName.set("corda-${project.name}")
+        archiveClassifier.set("javadoc")
+        from("${buildDir}/docs/javadoc")
+    }
+
+    configurations {
+        configureEach {
+            resolutionStrategy {
+                eachDependency { details ->
+                    if (details.requested.group == 'org.apache.sshd' && details.requested.name == 'sshd-core') {
+                        details.useVersion sshdCoreVersion
+                    }
+                }
+            }
+        }
+
+    }
 }
 
 dependencies {
@@ -146,21 +190,51 @@ allprojects {
     }
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
         kotlinOptions {
-            languageVersion = "1.2"
-            apiVersion = "1.2"
-            jvmTarget = VERSION_1_8
+            languageVersion = "1.9"
+            apiVersion = "1.9"
+            jvmTarget = VERSION_17
             javaParameters = true   // Useful for reflection.
-            freeCompilerArgs = ['-Xjvm-default=compatibility']
+            freeCompilerArgs = ['-Xjvm-default=all-compatibility']
             allWarningsAsErrors = false
         }
     }
 }
 
+ext.configureCommonPom = { pom ->
+    pom.url.set("https://github.com/corda/corda-shell")
+    pom.description.set("A standalone shell for interacting with Corda nodes and services.")
+
+    pom.scm {
+        url.set("https://github.com/corda/corda-shell")
+    }
+
+    pom.licenses {
+        license {
+            name.set("Apache-2.0")
+            url.set("https://www.apache.org/licenses/LICENSE-2.0")
+            distribution.set("repo")
+        }
+    }
+
+    pom.developers {
+        developer {
+            id.set("R3")
+            name.set("R3")
+            email.set("dev@corda.net")
+        }
+    }
+}
 
 // Publish the default jar for all submodules, These are not for external consumption.
 // We must generate a jar which has a pom.xml with a full dependency list for vulnerability tools to evaluate.
-// The shadow jar removes this information, as those dependencies are embedded in the jar.
+// The shadow jar removes this information, as those dependencies are embedded in the jar. 
 subprojects {
+    plugins.withId("java") {
+        java {
+            withSourcesJar()
+        }
+    }
+
     afterEvaluate { project ->
         if (project.name in ['shell', 'standalone-shell']) {
             apply plugin: 'maven-publish'
@@ -183,47 +257,5 @@ subprojects {
                 archiveClassifier = 'R3-internal'
             }
         }
-    }
-}
-
-artifactory {
-    publish {
-        contextUrl = artifactoryContextUrl
-        repository {
-            repoKey = 'corda-dev'
-            username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
-            password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
-        }
-
-        defaults {
-            // Root project applies the plugin (for this block) but does not need to be published
-            if (project != rootProject) {
-                def pubNames = project.publishing.publications*.name
-                publications(pubNames.toArray(new String[0]))
-            }
-        }
-    }
-}
-
-bintrayConfig {
-    user = System.getenv('CORDA_BINTRAY_USER') ?: System.getProperty('corda.bintray.user')
-    key = System.getenv('CORDA_BINTRAY_KEY') ?: System.getProperty('corda.bintray.key')
-    repo = 'corda'
-    org = 'r3'
-    licenses = ['Apache-2.0']
-    vcsUrl = 'https://github.com/corda/corda-shell'
-    projectUrl = 'https://github.com/corda/corda-shell'
-    gpgSign = true
-    gpgPassphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
-    publications = ['corda-shell', 'corda-standalone-shell']
-    license {
-        name = 'Apache-2.0'
-        url = 'https://www.apache.org/licenses/LICENSE-2.0'
-        distribution = 'repo'
-    }
-    developer {
-        id = 'R3'
-        name = 'R3'
-        email = 'dev@corda.net'
     }
 }

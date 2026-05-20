@@ -22,8 +22,6 @@ import net.corda.core.internal.Emoji
 import net.corda.core.internal.VisibleForTesting
 import net.corda.core.internal.concurrent.doneFuture
 import net.corda.core.internal.concurrent.openFuture
-import net.corda.core.internal.createDirectories
-import net.corda.core.internal.div
 import net.corda.core.internal.messaging.AttachmentTrustInfoRPCOps
 import net.corda.core.internal.packageName_
 import net.corda.core.internal.rootCause
@@ -75,6 +73,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 import kotlin.concurrent.thread
+import kotlin.io.path.createDirectories
+import kotlin.io.path.div
 
 const val STANDALONE_SHELL_PERMISSION = "ALL"
 
@@ -378,6 +378,8 @@ object InteractiveShell {
             output.println(e.message ?: "Access denied", Decoration.bold, Color.red)
         } catch (e: ExecutionException) {
             // ignoring it as already logged by the progress handler subscriber
+        } finally {
+            InputStreamDeserializer.closeAll()
         }
     }
 
@@ -634,6 +636,7 @@ object InteractiveShell {
             out.println("RPC failed: ${e.rootCause}", Decoration.bold, Color.red)
         } finally {
             InputStreamSerializer.invokeContext = null
+            InputStreamDeserializer.closeAll()
         }
         return result
     }
@@ -694,6 +697,7 @@ object InteractiveShell {
             result = 1
         } finally {
             InputStreamSerializer.invokeContext = null
+            InputStreamDeserializer.closeAll()
         }
         return result;
     }
