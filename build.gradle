@@ -156,16 +156,6 @@ allprojects {
             allWarningsAsErrors = false
         }
     }
-
-    configurations {
-        all {
-            resolutionStrategy {
-                // These dependencies are forced in-sync with Corda OS 4.11.
-                force "org.apache.commons:commons-configuration2:$commonsConfiguration2Version"
-                force "org.apache.commons:commons-dbcp2:$commonsDbcpVersion"
-            }
-        }
-    }
 }
 
 
