@@ -44,7 +44,7 @@ class StringToClassParserTest {
         val query = cut.parse(input, JacksonSupport.createNonRpcMapper(YAMLFactory())).getOrReport(printWriter)
 
         assertNotNull(query)
-        assertEquals("flowClass", query!!.flowClass)
+        assertEquals("flowClass", query.flowClass)
         assertEquals(1, query.flowStates?.size)
         assertEquals(TestState.PAUSED, query.flowStates?.get(0))
         assertTrue(query.compatibleWithCurrentCordaRuntime == true)
@@ -74,7 +74,7 @@ class StringToClassParserTest {
         val query = cut.parse(input, JacksonSupport.createNonRpcMapper(YAMLFactory())).getOrReport(printWriter)
 
         assertNotNull(query)
-        assertNull(query!!.flowClass)
+        assertNull(query.flowClass)
         assertNull(query.flowStates)
         assertNull(query.compatibleWithCurrentCordaRuntime)
         assertNull(query.suspensionDuration)
@@ -91,7 +91,7 @@ class StringToClassParserTest {
         val query = cut.parse(input, JacksonSupport.createNonRpcMapper(YAMLFactory())).getOrReport(printWriter)
 
         assertNotNull(query)
-        assertNull(query!!.flowClass)
+        assertNull(query.flowClass)
         assertNull(query.flowStates)
         assertNull(query.compatibleWithCurrentCordaRuntime)
         assertNull(query.suspensionDuration)

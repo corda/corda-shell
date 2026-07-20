@@ -1,6 +1,6 @@
 package net.corda.tools.shell.utilities
 
-import com.nhaarman.mockito_kotlin.*
+import org.mockito.kotlin.*
 import net.corda.core.flows.StateMachineRunId
 import net.corda.core.internal.concurrent.openFuture
 import net.corda.core.messaging.DataFeed
