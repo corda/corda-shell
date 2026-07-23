@@ -273,36 +273,6 @@ allprojects {
                     if (details.requested.group == 'org.apache.sshd' && details.requested.name == 'sshd-core') {
                         details.useVersion sshdCoreVersion
                     }
-                    // SNYK-JAVA-IOMICROMETER-17339194 / CVE-2026-40983
-                    // SNYK-JAVA-IOMICROMETER-17260885 / CVE-2026-40984
-                    // vulnerability in io.micrometer:micrometer-core@1.16.5 fixed in micrometer-core@1.16.6
-                    // micrometer-core@1.16.5 is a transitive dependency via artemis-server@2.54.0
-                    // force-upgrade micrometer-core to a fixed version
-                    // Review when Artemis is upgraded
-                    if (details.requested.group == 'io.micrometer' && details.requested.name == "micrometer-core") {
-                        details.useVersion micrometerCoreVersion
-                    }
-
-                    // SNYK-JAVA-IONETTY-17311221 / CVE-2026-48059
-                    // SNYK-JAVA-IONETTY-17262766 / CVE-2026-44893
-                    // Vulnerability in io.netty:netty-codec-haproxy, which is a transitive dependency
-                    // of artemis-server@2.54.03
-                    if (details.requested.group == 'io.netty' && details.requested.name.startsWith('netty-')) {
-                        if (details.requested.name.startsWith('netty-tcnative')) {
-                            details.useVersion tcnativeVersion
-                        } else {
-                            details.useVersion nettyVersion
-                        }
-                    }
-
-                    // SNYK-JAVA-ORGAPACHECOMMONS-16690473 / CVE-2026-45205
-                    // vulnerability in org.apache.commons:commons-configuration2@2.13.0, fixed in commons-configuration2@2.15.0
-                    // commons-configuration2@2.13.0 is a transitive dependency via artemis-amqp-protocol@2.54.0
-                    // force-upgrade to commons-configuration2@2.15.0 to fix the issue
-                    // Review this when Artemis is upgraded
-                    if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-configuration2') {
-                        details.useVersion commonsConfiguration2Version
-                    }
                 }
             }
         }
