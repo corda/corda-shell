@@ -273,6 +273,20 @@ allprojects {
                     if (details.requested.group == 'org.apache.sshd' && details.requested.name == 'sshd-core') {
                         details.useVersion sshdCoreVersion
                     }
+
+                    // SNYK-JAVA-IONETTY-18170202 / CVE-2026-55833
+                    // SNYK-JAVA-IONETTY-18170204 / CVE-2026-56819
+                    // SNYK-JAVA-IONETTY-18170213 / CVE-2026-56745
+                    // SNYK-JAVA-IONETTY-18170206 / CVE-2026-56746
+                    // Vulnerability in io.netty:netty-codec-haproxy, which is a transitive dependency
+                    // of artemis-server@2.55.0
+                    if (details.requested.group == 'io.netty' && details.requested.name.startsWith('netty-')) {
+                        if (details.requested.name.startsWith('netty-tcnative')) {
+                            details.useVersion tcnativeVersion
+                        } else {
+                            details.useVersion nettyVersion
+                        }
+                    }
                 }
             }
         }
