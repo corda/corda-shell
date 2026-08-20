@@ -5,6 +5,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.Mockito.verifyNoInteractions
 import net.corda.core.flows.StateMachineRunId
 import net.corda.core.internal.concurrent.openFuture
 import net.corda.core.messaging.DataFeed
@@ -158,5 +159,49 @@ class ANSIProgressRendererTest {
                 stepNotRun(STEP_4_LABEL)
             )
         )
+    }
+
+    @Test(timeout = 300_000)
+    fun `onDone is invoked when the progress feeds complete`() {
+        // Control for the test below: with both feeds present, completing them must complete the
+        // renderer, because InteractiveShell.runFlowByNameFragment blocks on a latch that only the
+        // onDone callback releases.
+        var done = false
+        progressRenderer.render(flowProgressHandle) { done = true }
+        feedSubject.onNext(listOf(Pair(0, STEP_1_LABEL)))
+        indexSubject.onNext(0)
+
+        feedSubject.onCompleted()
+        indexSubject.onCompleted()
+
+        assertThat(done).isTrue()
+    }
+
+    @Test(timeout = 300_000)
+    fun `flow without progress feeds never completes the renderer and prints nothing - reproduces the flow start hang`() {
+        // A flow declaring `progressTracker = null` produces a FlowProgressHandle whose
+        // stepsTreeFeed and stepsTreeIndexFeed are null (CordaRPCOpsImpl.startTrackedFlowDynamic).
+        // renderInternal then takes its "required data is missing" branch, which:
+        //   - never subscribes to anything, so done() - and with it the onDone callback - is never
+        //     invoked. InteractiveShell.runFlowByNameFragment waits forever on its CountDownLatch,
+        //     so `flow start` hangs in both the standalone and the embedded/SSH shell;
+        //   - builds its warning into a fresh Ansi() that is never passed to printAnsi, so the
+        //     hang is completely silent.
+        //
+        // This test documents that behaviour, so it PASSES while the bug exists. The fix (call
+        // done(null) and actually print the warning in the missing-data branch) should flip it to
+        // assert that onDone was invoked and the warning was printed.
+        val handleWithoutFeeds = FlowProgressHandleImpl(
+            StateMachineRunId.createRandom(),
+            openFuture<String>(),
+            Observable.empty()
+        )
+
+        var done = false
+        progressRenderer.render(handleWithoutFeeds) { done = true }
+
+        // If this assertion fails, the hang has been fixed: flip this test as described above.
+        assertThat(done).isFalse()
+        verifyNoInteractions(printWriter)
     }
 }

@@ -54,6 +54,7 @@ import net.corda.testing.internal.useSslRpcOverrides
 import net.corda.testing.node.User
 import net.corda.testing.node.internal.enclosedCordapp
 import net.corda.tools.shell.utlities.ANSIProgressRenderer
+import net.corda.tools.shell.utlities.CRaSHANSIProgressRenderer
 import org.apache.activemq.artemis.api.core.ActiveMQSecurityException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -68,9 +69,11 @@ import java.util.ArrayList
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.zip.ZipInputStream
 import javax.security.auth.x500.X500Principal
+import kotlin.concurrent.thread
 import kotlin.io.path.createDirectories
 import kotlin.io.path.div
 import kotlin.io.path.inputStream
@@ -299,6 +302,66 @@ class InteractiveShellIntegrationTest {
     }
 
     @Test(timeout = 300_000)
+    fun `flow start with the real progress renderer completes for a flow with a progress tracker`() {
+        // Control for the hang test below. Note that every other test in this file passes
+        // mockAnsiProgressRenderer(), whose stubbed render() releases InteractiveShell.latch
+        // immediately - bypassing the component under test. This one uses the real renderer over
+        // real RPC and shows the command completes for an ordinary flow.
+        val user = User("u", "p", setOf(all()))
+        driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), cordappsForAllNodes = listOf(enclosedCordapp()))) {
+            val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
+            startShell(node)
+            val (output, lines) = mockRenderPrintWriter()
+            InteractiveShell.runFlowByNameFragment(
+                NoOpFlow::class.java.name, "", output, node.rpc, CRaSHANSIProgressRenderer(output)
+            )
+            assertThat(lines.last()).startsWith("Flow completed with result:")
+        }
+    }
+
+    @Test(timeout = 300_000)
+    fun `flow start hangs on a flow without a progress tracker`() {
+        // A flow declaring `progressTracker = null` produces a FlowProgressHandle whose
+        // stepsTreeFeed and stepsTreeIndexFeed are null. ANSIProgressRenderer.renderInternal then
+        // takes its "required data is missing" branch, which never subscribes and never calls
+        // done(), so the CountDownLatch in runFlowByNameFragment is never released: `flow start`
+        // hangs silently even though the flow itself completed long ago.
+        //
+        // This test documents that behaviour, so it PASSES while the bug exists: the command
+        // thread is still blocked 15 seconds after the flow finished on the node. The fix (call
+        // done(null) and print the warning in the missing-data branch) should flip it to assert
+        // the command completes.
+        val user = User("u", "p", setOf(all()))
+        driver(DriverParameters(startNodesInProcess = true, notarySpecs = emptyList(), cordappsForAllNodes = listOf(enclosedCordapp()))) {
+            val node = startNode(providedName = ALICE_NAME, rpcUsers = listOf(user)).getOrThrow()
+            startShell(node)
+            val (output, lines) = mockRenderPrintWriter()
+
+            val flowStartCommand = thread(name = "hanging flow start", isDaemon = true) {
+                InteractiveShell.runFlowByNameFragment(
+                    NoOpNullTrackerFlow::class.java.name, "", output, node.rpc, CRaSHANSIProgressRenderer(output)
+                )
+            }
+
+            // The flow itself runs and completes normally...
+            assertTrue(NoOpNullTrackerFlow.hasRun.tryAcquire(1, TimeUnit.MINUTES))
+            while (node.rpc.stateMachinesSnapshot().isNotEmpty()) {
+                Thread.sleep(200)
+            }
+
+            // ...but the shell command is still hanging 15 seconds later, having printed nothing.
+            flowStartCommand.join(15_000)
+            assertTrue(flowStartCommand.isAlive, "if flow start no longer hangs, the bug is fixed: flip this test")
+            assertThat(lines).noneMatch { it.startsWith("Flow completed") }
+
+            // Unblock the command thread so the driver can shut down cleanly.
+            flowStartCommand.interrupt()
+            flowStartCommand.join(30_000)
+            assertThat(flowStartCommand.isAlive).isFalse()
+        }
+    }
+
+    @Test(timeout = 300_000)
     fun `dumpCheckpoints correctly serializes FlowExternalOperations`() {
         driver(DriverParameters(notarySpecs = emptyList(), startNodesInProcess = true)) {
             val alice = startNode(providedName = ALICE_NAME).getOrThrow()
@@ -488,6 +551,20 @@ class InteractiveShellIntegrationTest {
         override val progressTracker = ProgressTracker()
         override fun call() {
             println("NO OP! (Burble)")
+        }
+    }
+
+    @Suppress("UNUSED")
+    @StartableByRPC
+    class NoOpNullTrackerFlow : FlowLogic<Unit>() {
+        companion object {
+            val hasRun = Semaphore(0)
+        }
+
+        override val progressTracker: ProgressTracker? = null
+        override fun call() {
+            println("NO OP! (null tracker)")
+            hasRun.release()
         }
     }
 
