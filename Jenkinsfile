@@ -52,7 +52,7 @@ pipeline {
     environment {
         ARTIFACTORY_BUILD_NAME = "${artifactoryBuildName}"
         CORDA_BUILD_EDITION = "${buildEdition}"
-        ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
+        ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials-2')
         CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
         CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
         CORDA_USE_CACHE = "corda-remotes"
@@ -106,8 +106,8 @@ pipeline {
             steps {
                 rtServer(
                         id: 'R3-Artifactory',
-                        url: 'https://software.r3.com/artifactory',
-                        credentialsId: 'artifactory-credentials'
+                        url: 'https://software2.r3.com/artifactory',
+                        credentialsId: 'artifactory-credentials-2'
                 )
                 rtGradleDeployer(
                         id: 'deployer',
