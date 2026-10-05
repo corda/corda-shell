@@ -155,6 +155,7 @@ shadowJar {
         attributes('Corda-Platform-Version': cordaPlatformVersion)
         attributes "Corda-Vendor": "Corda Enterprise Edition"
     }
+    transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer)
 }
 
 processResources {
