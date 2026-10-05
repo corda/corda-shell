@@ -31,7 +31,7 @@ class FlowStatusCommandTest : CommandTestBase() {
             val handle = node.rpc.startFlow(::PauseFlow)
             val id = handle.id
             val session = connectToShell(user, node)
-            testCommand(session, command = "flow pause ${id.uuid.toString().toLowerCase()}", expected = "Paused flow $id")
+            testCommand(session, command = "flow pause ${id.uuid.toString().lowercase()}", expected = "Paused flow $id")
             PauseFlow.beforePause!!.release()
             eventually(5.seconds) {
                 testCommand(
@@ -40,7 +40,7 @@ class FlowStatusCommandTest : CommandTestBase() {
                     expected = id.uuid.toString()
                 )
             }
-            testCommand(session, command = "flow retry ${id.uuid.toString().toLowerCase()}", expected = "Retried flow $id")
+            testCommand(session, command = "flow retry ${id.uuid.toString().lowercase()}", expected = "Retried flow $id")
             handle.returnValue.getOrThrow()
         }
     }

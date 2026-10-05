@@ -1,4 +1,4 @@
-import static org.gradle.api.JavaVersion.VERSION_1_8
+import static org.gradle.api.JavaVersion.VERSION_17
 
 buildscript {
 
@@ -12,6 +12,27 @@ buildscript {
             "unknown"
         }
     }()
+
+    ext.quasar_exclusions = [
+            'co.paralleluniverse**',
+            'groovy**',
+            'com.esotericsoftware.**',
+            'jdk**',
+            'junit**',
+            'kotlin**',
+            'net.rubygrapefruit.**',
+            'org.gradle.**',
+            'org.apache.**',
+            'org.jacoco.**',
+            'org.junit**',
+            'org.slf4j**',
+            'worker.org.gradle.**',
+            'org.mockito.kotlin**',
+            'org.assertj**',
+            'org.hamcrest**',
+            'org.mockito**',
+            'org.opentest4j**'
+    ]
 
     repositories {
         mavenLocal()
@@ -81,7 +102,7 @@ buildscript {
                 }
             }
             mavenCentral()
-            maven { url "${artifactoryContextUrl}/jcenter-backup" }
+            maven { url "${publicArtifactURL}/jcenter-backup" }
         }
         maven {
             url "${artifactoryContextUrl}/r3-corda-dev"
@@ -108,21 +129,22 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath "net.corda.plugins:cordapp:$gradlePluginsVersion"
         classpath "net.corda.plugins:quasar-utils:$gradlePluginsVersion"
-        classpath "net.corda.plugins:publish-utils:$gradlePluginsVersion"
-        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:$artifactoryPluginVersion"
     }
 }
 
 plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlinVersion"
-    id 'maven-publish'
+    id "org.ajoberstar.grgit" version "4.0.0"
+    id 'corda.root-publish'
 }
 
-apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'net.corda.plugins.publish-utils'
+// If the command line project option -PversionFromGit is added to the gradle invocation, we'll resolve
+// the latest git commit hash and timestamp and create a version postfix from that
+if (project.hasProperty("versionFromGit")) {
+    ext.versionSuffix = "-${grgit.head().dateTime.format("yyyyMMdd_HHmmss")}-${grgit.head().abbreviatedId}"
+}
 
 version = "$cordaShellReleaseVersion$versionSuffix"
-
 
 logger.quiet("Corda release version: {}", version)
 
@@ -159,22 +181,25 @@ allprojects {
                     includeGroupByRegex 'net\\.corda(\\..*)?'
                     includeGroupByRegex 'com\\.r3(\\..*)?'
                     includeGroup 'co.paralleluniverse'
+                    includeGroup 'com.palominolabs.metrics'
                     includeGroup 'org.crashub'
                     includeGroup 'com.github.bft-smart'
                 }
+                metadataSources { artifact() }
             }
+            maven { url "${publicArtifactURL}/corda-dependencies-dev" }
             maven {
                 url "${artifactoryContextUrl}/corda-dev"
+                content {
+                    includeGroupByRegex 'net\\.corda(\\..*)?'
+                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                }
                 authentication {
                     basic(BasicAuthentication)
                 }
                 credentials {
-                    username = findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
-                    password = findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
-                }
-                content {
-                    includeGroupByRegex 'net\\.corda(\\..*)?'
-                    includeGroupByRegex 'com\\.r3(\\..*)?'
+                    username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                    password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
                 }
             }
             maven {
@@ -226,7 +251,7 @@ allprojects {
                 }
             }
             mavenCentral()
-            maven { url "${artifactoryContextUrl}/jcenter-backup" }
+            maven { url "${publicArtifactURL}/jcenter-backup" }
         }
     }
 
@@ -239,6 +264,46 @@ allprojects {
             attributes('Corda-Vendor': cordaBuildEdition)
             attributes('Automatic-Module-Name': "net.corda.${task.project.name.replaceAll('-', '.')}")
         }
+    }
+
+    configurations {
+        configureEach {
+            resolutionStrategy {
+                eachDependency { details ->
+                    if (details.requested.group == 'org.apache.sshd' && details.requested.name == 'sshd-core') {
+                        details.useVersion sshdCoreVersion
+                    }
+
+                    // SNYK-JAVA-IONETTY-18170202 / CVE-2026-55833
+                    // SNYK-JAVA-IONETTY-18170204 / CVE-2026-56819
+                    // SNYK-JAVA-IONETTY-18170213 / CVE-2026-56745
+                    // SNYK-JAVA-IONETTY-18170206 / CVE-2026-56746
+                    // Vulnerability in io.netty:netty-codec-haproxy, which is a transitive dependency
+                    // of artemis-server@2.55.0
+                    if (details.requested.group == 'io.netty' && details.requested.name.startsWith('netty-')) {
+                        if (details.requested.name.startsWith('netty-tcnative')) {
+                            details.useVersion tcnativeVersion
+                        } else {
+                            details.useVersion nettyVersion
+                        }
+                    }
+
+                    // SNYK-JAVA-IOMICROMETER-19233327 / CVE-2026-59296
+                    if (details.requested.group == 'io.micrometer') {
+                        details.useVersion micrometerVersion
+                    }
+
+                    // jackson-module-kotlin gets transitively upgraded past jacksonKotlinVersion by
+                    // com.fasterxml.jackson:jackson-bom, and jackson-module-kotlin 2.20+ depends on
+                    // kotlin-reflect 2.x, which then drags kotlin-stdlib up to 2.x in our shaded jar and
+                    // breaks Kotlin-1.9.x consumers. Pin it to the last Kotlin-1.9-compatible release.
+                    if (details.requested.group == 'com.fasterxml.jackson.module' && details.requested.name == 'jackson-module-kotlin') {
+                        details.useVersion jacksonKotlinVersion
+                    }
+                }
+            }
+        }
+
     }
 }
 
@@ -254,48 +319,20 @@ allprojects {
     }
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
         kotlinOptions {
-            languageVersion = "1.2"
-            apiVersion = "1.2"
-            jvmTarget = VERSION_1_8
+            languageVersion = "1.9"
+            apiVersion = "1.9"
+            jvmTarget = VERSION_17
             javaParameters = true   // Useful for reflection.
-            freeCompilerArgs = ['-Xjvm-default=compatibility']
+            freeCompilerArgs = ['-Xjvm-default=all-compatibility']
             allWarningsAsErrors = false
         }
     }
-
-    configurations {
-        all {
-            resolutionStrategy {
-                // These dependencies are forced in-sync with Corda OS 4.11.
-                force "org.apache.commons:commons-configuration2:$commonsConfiguration2Version"
-                force "org.apache.commons:commons-dbcp2:$commonsDbcpVersion"
-            }
-        }
-    }
 }
 
-artifactory {
-    publish {
-        contextUrl = artifactoryContextUrl
-        repository {
-            repoKey = 'r3-corda-dev'
-            username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
-            password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
-        }
-
-        defaults {
-            // Root project applies the plugin (for this block) but does not need to be published
-            if (project != rootProject) {
-                def pubNames = project.publishing.publications*.name
-                publications(pubNames.toArray(new String[0]))
-            }
-        }
-    }
-}
 
 // Publish the default jar for all submodules, These are not for external consumption.
 // We must generate a jar which has a pom.xml with a full dependency list for vulnerability tools to evaluate.
-// The shadow jar removes this information, as those dependencies are embedded in the jar. 
+// The shadow jar removes this information, as those dependencies are embedded in the jar.
 subprojects {
     afterEvaluate { project ->
         if (project.name in ['shell', 'standalone-shell']) {
@@ -319,28 +356,5 @@ subprojects {
                 archiveClassifier = 'R3-internal'
             }
         }
-    }
-}
-
-bintrayConfig {
-    user = System.getenv('CORDA_BINTRAY_USER') ?: System.getProperty('corda.bintray.user')
-    key = System.getenv('CORDA_BINTRAY_KEY') ?: System.getProperty('corda.bintray.key')
-    repo = 'corda'
-    org = 'r3'
-    licenses = ['Apache-2.0']
-    vcsUrl = 'https://github.com/corda/corda-shell'
-    projectUrl = 'https://github.com/corda/corda-shell'
-    gpgSign = true
-    gpgPassphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
-    publications = ['corda-shell', 'corda-standalone-shell']
-    license {
-        name = 'Apache-2.0'
-        url = 'https://www.apache.org/licenses/LICENSE-2.0'
-        distribution = 'repo'
-    }
-    developer {
-        id = 'R3'
-        name = 'R3'
-        email = 'dev@corda.net'
     }
 }

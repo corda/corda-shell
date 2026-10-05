@@ -1,7 +1,5 @@
 package net.corda.tools.shell
 
-import com.nhaarman.mockito_kotlin.argThat
-import com.nhaarman.mockito_kotlin.mock
 import net.corda.client.rpc.proxy.NodeFlowStatusRpcOps
 import net.corda.nodeapi.flow.hospital.FlowTimeWindow
 import net.corda.core.identity.CordaX500Name
@@ -19,7 +17,9 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.argThat
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -62,7 +62,7 @@ class FlowStatusQueryCommandTest {
         val queryStrings = listOf(
             """
             flowStates: PAUSED, flowClass: flowClass, cordapp: accounts, progressStep: "Signing Tx", compatibleWithCurrentCordaRuntime: true,
-            suspensionDuration: "10 MINUTES", flowStart: {fromTime: "2020-03-31T09:59:51.312"}, invocationSources: [RPC],
+            suspensionDuration: "10 MINUTES", flowStart: {fromTime: "2020-03-31T09:59:51.312Z"}, invocationSources: [RPC],
             startedBy: partyA, suspensionSources: [RECEIVE, SEND], counterParties: ["$ALICE_NAME", "$BOB_NAME"]
     """.trimIndent()
         )
@@ -102,7 +102,7 @@ class FlowStatusQueryCommandTest {
     @Test(timeout = 30_000)
     fun testFlowStartBetween() {
         val queryStrings = listOf(
-            "flowStart: {fromTime: \"2007-12-04T10:15:30.00\", untilTime: \"2007-12-05T10:15:30.00Z\"}"
+            "flowStart: {fromTime: \"2007-12-04T10:15:30.00Z\", untilTime: \"2007-12-05T10:15:30.00Z\"}"
         )
         queryCommand.queryFlows(mockInvocationContext, queryStrings)
         Mockito.verify(queryProvider).getFlowsMatchingV2(argThat {
@@ -126,7 +126,7 @@ class FlowStatusQueryCommandTest {
 
     @Test(timeout = 30_000)
     fun testFlowStartUntil() {
-        val queryStrings = listOf("flowStart: {untilTime: \"2007-12-04T10:15:30.00\"}")
+        val queryStrings = listOf("flowStart: {untilTime: \"2007-12-04T10:15:30.00Z\"}")
         queryCommand.queryFlows(mockInvocationContext, queryStrings)
         Mockito.verify(queryProvider).getFlowsMatchingV2(argThat {
             equals(

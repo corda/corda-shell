@@ -25,19 +25,19 @@ class FlowStatusCommandTest {
         val expectedFlowClass = "net.corda.failingflows.workflows.HospitalizerFlow"
         val id = UUID.randomUUID()
         val ops = Mockito.mock(NodeFlowStatusRpcOps::class.java)
-        Mockito.`when`(ops.getFlowStatus(id.toString().toLowerCase()))
+        Mockito.`when`(ops.getFlowStatus(id.toString().lowercase()))
             .thenReturn(
                 buildDummyFlowInfo(id, expectedFlowClass)
             )
         val arrayWriter = CharArrayWriter()
         val response = PrintWriter(arrayWriter).use {
-            FlowStatusQueryCommand.queryById(it, listOf(id.toString().toLowerCase()), ops)
+            FlowStatusQueryCommand.queryById(it, listOf(id.toString().lowercase()), ops)
             it.flush()
             arrayWriter.toString()
         }
         MatcherAssert.assertThat(response, StringContains.containsString(FlowState.HOSPITALIZED.name))
         MatcherAssert.assertThat(response, StringContains.containsString(expectedFlowClass))
-        MatcherAssert.assertThat(response, StringContains.containsString("flowId: \"${id.toString().toLowerCase()}\""))
+        MatcherAssert.assertThat(response, StringContains.containsString("flowId: \"${id.toString().lowercase()}\""))
     }
 
     @Test(timeout = 300_000)
@@ -46,17 +46,17 @@ class FlowStatusCommandTest {
         val ops = Mockito.mock(NodeFlowStatusRpcOps::class.java)
         val now = Instant.now()
         val then = now.plusSeconds(100)
-        Mockito.`when`(ops.getFlowStatus(id.toString().toLowerCase()))
+        Mockito.`when`(ops.getFlowStatus(id.toString().lowercase()))
             .thenReturn(
                 buildDummyFlowInfo(id, "net.corda.failingflows.workflows.HospitalizerFlow", flowStart = now, lastSuspend = then)
             )
         val arrayWriter = CharArrayWriter()
         val response = PrintWriter(arrayWriter).use {
-            FlowStatusQueryCommand.queryById(it, listOf(id.toString().toLowerCase()), ops)
+            FlowStatusQueryCommand.queryById(it, listOf(id.toString().lowercase()), ops)
             it.flush()
             arrayWriter.toString()
         }
-        MatcherAssert.assertThat(response, StringContains.containsString("flowId: \"${id.toString().toLowerCase()}\""))
+        MatcherAssert.assertThat(response, StringContains.containsString("flowId: \"${id.toString().lowercase()}\""))
         MatcherAssert.assertThat(
             response,
             StringContains.containsString("readable: \"${FlowStatusQueryCommand.INSTANT_FORMATTER.format(now)}\"")
@@ -77,46 +77,46 @@ class FlowStatusCommandTest {
         val partyOps = Mockito.mock(CordaRPCOps::class.java)
         Mockito.`when`(ops.getFlowsMatchingV2(FlowStatusQueryV2(flowStates = listOf(FlowState.HOSPITALIZED))))
             .thenReturn(
-                listOf(hospitaliseId.toString().toLowerCase())
+                listOf(hospitaliseId.toString().lowercase())
             )
         Mockito.`when`(ops.getFlowsMatchingV2(FlowStatusQueryV2(flowStates = listOf(FlowState.FAILED))))
             .thenReturn(
-                listOf(failId.toString().toLowerCase())
+                listOf(failId.toString().lowercase())
             )
         Mockito.`when`(ops.getFlowsMatchingV2(FlowStatusQueryV2()))
             .thenReturn(
                 listOf(
-                    hospitaliseId.toString().toLowerCase(),
-                    failId.toString().toLowerCase()
+                    hospitaliseId.toString().lowercase(),
+                    failId.toString().lowercase()
                 )
             )
         //hospitalized only
         testQueryFlowStatus(
             ops = ops,
             input = listOf("flowStates:", "HOSPITALIZED"),
-            expected = hospitaliseId.toString().toLowerCase(),
-            mustExclude = failId.toString().toLowerCase(),
+            expected = hospitaliseId.toString().lowercase(),
+            mustExclude = failId.toString().lowercase(),
             partyOps = partyOps
         )
         //failed only
         testQueryFlowStatus(
             ops = ops,
             input = listOf("flowStates:", "FAILED"),
-            expected = failId.toString().toLowerCase(),
-            mustExclude = hospitaliseId.toString().toLowerCase(),
+            expected = failId.toString().lowercase(),
+            mustExclude = hospitaliseId.toString().lowercase(),
             partyOps = partyOps
         )
         //now check that both id's actually returned when listed without args
         testQueryFlowStatus(
             ops = ops,
             input = emptyList(),
-            expected = hospitaliseId.toString().toLowerCase(),
+            expected = hospitaliseId.toString().lowercase(),
             partyOps = partyOps
         )
         testQueryFlowStatus(
             ops = ops,
             input = emptyList(),
-            expected = failId.toString().toLowerCase(),
+            expected = failId.toString().lowercase(),
             partyOps = partyOps
         )
     }
@@ -129,13 +129,13 @@ class FlowStatusCommandTest {
         val partyOps = Mockito.mock(CordaRPCOps::class.java)
         Mockito.`when`(ops.getFlowsMatchingV2(FlowStatusQueryV2(cordapp = cordappId)))
             .thenReturn(
-                listOf(id.toString().toLowerCase())
+                listOf(id.toString().lowercase())
             )
         testQueryFlowStatus(
             ops = ops,
             partyOps = partyOps,
             input = listOf("cordapp:", cordappId),
-            expected = id.toString().toLowerCase()
+            expected = id.toString().lowercase()
         )
     }
 

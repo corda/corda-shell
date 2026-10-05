@@ -16,6 +16,7 @@ boolean isENTReleaseTag = (env.TAG_NAME =~ /^release-ENT-.*/)
 
 def buildEdition = "Corda Enterprise Edition"
 
+String publishOptions = (isRelease || isReleaseBranch) ? "${extraGradleCommands}" : "${extraGradleCommands} -PversionFromGit"
 String artifactoryBuildName = "Corda-Shell"
 
 // Artifactory build info links
@@ -56,6 +57,7 @@ pipeline {
         CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
         CORDA_USE_CACHE = "corda-remotes"
         SNYK_TOKEN = "c4-ent-snyk-shell"
+        JAVA_HOME="/usr/lib/jvm/java-17-amazon-corretto"
     }
 
     stages {
@@ -86,7 +88,7 @@ pipeline {
         stage('Test') {
             steps {
                 script{
-                    sh "./gradlew test -Si"
+                    sh "./gradlew test integrationTest -Si"
                 }
             }
             post {
@@ -102,50 +104,29 @@ pipeline {
                 expression { params.DO_PUBLISH }
             }
             steps {
-                script{
-                        def props = readProperties file: 'gradle.properties'
-                        def groupId = props['cordaReleaseGroup']
-                        boolean isOpenSource = groupId.equals("net.corda") ? true : false
-                        def snapshotRepo
-                        def releasesRepo
-
-                        if(isOpenSource){
-                             releasesRepo = "corda-releases"
-                             snapshotRepo = "corda-dev"
-                        }else {
-                             releasesRepo = "r3-corda-releases"
-                             snapshotRepo = "r3-corda-dev"
-                        }
-                        rtServer (
-                                id: 'R3-Artifactory',
-                                url: 'https://software.r3.com/artifactory',
-                                credentialsId: 'artifactory-credentials'
-                        )
-                        rtGradleDeployer (
-                                id: 'deployer',
-                                serverId: 'R3-Artifactory',
-                                repo: isRelease ? releasesRepo : snapshotRepo
-                        )
-
-                        withCredentials([
-                                usernamePassword(credentialsId: 'artifactory-credentials',
-                                                usernameVariable: 'CORDA_ARTIFACTORY_USERNAME',
-                                                passwordVariable: 'CORDA_ARTIFACTORY_PASSWORD')]) {
-                            rtGradleRun (
-                                    usesPlugin: true,
-                                    useWrapper: true,
-                                    switches: "--no-daemon -Si ${extraGradleCommands}",
-                                    tasks: 'artifactoryPublish',
-                                    deployerId: 'deployer',
-                                    buildName: env.ARTIFACTORY_BUILD_NAME
-                            )
-                        }
-                        rtPublishBuildInfo (
-                                serverId: 'R3-Artifactory',
-                                buildName: env.ARTIFACTORY_BUILD_NAME
-                        )
-                    }
-                }
+                rtServer(
+                        id: 'R3-Artifactory',
+                        url: 'https://software.r3.com/artifactory',
+                        credentialsId: 'artifactory-credentials'
+                )
+                rtGradleDeployer(
+                        id: 'deployer',
+                        serverId: 'R3-Artifactory',
+                        repo: isRelease ? 'r3-corda-releases' : 'r3-corda-dev'
+                )
+                rtGradleRun(
+                        usesPlugin: true,
+                        useWrapper: true,
+                        switches: publishOptions,
+                        tasks: 'artifactoryPublish',
+                        deployerId: 'deployer',
+                        buildName: env.ARTIFACTORY_BUILD_NAME
+                )
+                rtPublishBuildInfo(
+                        serverId: 'R3-Artifactory',
+                        buildName: env.ARTIFACTORY_BUILD_NAME
+                )
+            }
         }
     }
 
