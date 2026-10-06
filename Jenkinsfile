@@ -126,6 +126,36 @@ pipeline {
                 )
             }
         }
+
+        stage('Publish to Artifactory (software2)') {
+            when {
+                expression { params.DO_PUBLISH }
+            }
+            steps {
+                rtServer(
+                        id: 'R3-Artifactory-2',
+                        url: 'https://software2.r3.com/artifactory',
+                        credentialsId: 'artifactory-credentials-2'
+                )
+                rtGradleDeployer(
+                        id: 'deployer2',
+                        serverId: 'R3-Artifactory-2',
+                        repo: isRelease ? 'corda-releases' : 'corda-dev'
+                )
+                rtGradleRun(
+                        usesPlugin: true,
+                        useWrapper: true,
+                        switches: publishOptions,
+                        tasks: 'artifactoryPublish',
+                        deployerId: 'deployer2',
+                        buildName: env.ARTIFACTORY_BUILD_NAME
+                )
+                rtPublishBuildInfo(
+                        serverId: 'R3-Artifactory-2',
+                        buildName: env.ARTIFACTORY_BUILD_NAME
+                )
+            }
+        }
     }
 
 }
