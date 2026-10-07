@@ -128,6 +128,52 @@ pipeline {
                 )
             }
         }
+
+        // Temporary: publish release-ENT-4.12.13 to the second Artifactory instance as well.
+        stage('Publish to Artifactory (software2)') {
+            when {
+                expression { env.TAG_NAME == 'release-ENT-4.12.13' }
+            }
+            steps {
+                rtServer(
+                        id: 'R3-Artifactory-2',
+                        url: 'https://software2.r3.com/artifactory',
+                        credentialsId: 'artifactory-credentials-2'
+                )
+                rtGradleDeployer(
+                        id: 'deployer-2',
+                        serverId: 'R3-Artifactory-2',
+                        repo: 'r3-corda-releases'
+                )
+                script {
+                    try {
+                        // Point the build (publishing and dependency resolution) at software2, which has the same
+                        // repo structure. Match on the host only as the colon may be escaped.
+                        sh 'sed -i "s#//software\\.r3\\.com/artifactory#//software2.r3.com/artifactory#" gradle.properties'
+                        withCredentials([
+                                usernamePassword(credentialsId: 'artifactory-credentials-2',
+                                                 usernameVariable: 'CORDA_ARTIFACTORY_USERNAME',
+                                                 passwordVariable: 'CORDA_ARTIFACTORY_PASSWORD')]) {
+                            rtGradleRun(
+                                    usesPlugin: true,
+                                    useWrapper: true,
+                                    switches: publishOptions,
+                                    tasks: 'artifactoryPublish',
+                                    deployerId: 'deployer-2',
+                                    buildName: env.ARTIFACTORY_BUILD_NAME
+                            )
+                        }
+                    } finally {
+                        // restore the tag's file so any later stages keep using software.r3.com
+                        sh 'git checkout -- gradle.properties'
+                    }
+                }
+                rtPublishBuildInfo(
+                        serverId: 'R3-Artifactory-2',
+                        buildName: env.ARTIFACTORY_BUILD_NAME
+                )
+            }
+        }
     }
 
 }
