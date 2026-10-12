@@ -292,6 +292,14 @@ allprojects {
                     if (details.requested.group == 'io.micrometer') {
                         details.useVersion micrometerVersion
                     }
+
+                    // jackson-module-kotlin gets transitively upgraded past jacksonKotlinVersion by
+                    // com.fasterxml.jackson:jackson-bom, and jackson-module-kotlin 2.20+ depends on
+                    // kotlin-reflect 2.x, which then drags kotlin-stdlib up to 2.x in our shaded jar and
+                    // breaks Kotlin-1.9.x consumers. Pin it to the last Kotlin-1.9-compatible release.
+                    if (details.requested.group == 'com.fasterxml.jackson.module' && details.requested.name == 'jackson-module-kotlin') {
+                        details.useVersion jacksonKotlinVersion
+                    }
                 }
             }
         }
