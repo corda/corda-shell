@@ -15,7 +15,8 @@ import org.crsh.text.RenderPrintWriter
 import org.fusesource.jansi.Ansi
 import org.fusesource.jansi.Ansi.Attribute
 import org.fusesource.jansi.AnsiConsole
-import org.fusesource.jansi.AnsiOutputStream
+import org.fusesource.jansi.AnsiMode
+import org.fusesource.jansi.AnsiType
 import rx.Observable.combineLatest
 import rx.Subscription
 import java.util.EmptyStackException
@@ -288,15 +289,29 @@ class CRaSHANSIProgressRenderer(val renderPrintWriter: RenderPrintWriter) : ANSI
  */
 object StdoutANSIProgressRenderer : ANSIProgressRenderer() {
 
+    /**
+     * Whether the escape sequences this renderer prints reach a terminal that interprets them.
+     *
+     * Jansi 1.x had no API for this, so the check used to wrap System.out and look at the type of the wrapper it got
+     * back. Jansi 2.x removed that method; the stream that [AnsiConsole.systemInstall] installs now reports how it was
+     * set up instead. Forcing through `-Djansi.mode=force` (or the older `-Djansi.force=true`) is honoured, and a
+     * stripping stream, a redirected stream, or a console that needs Jansi to emulate the sequences on its behalf
+     * (the legacy Windows console) is treated as not supporting them, as before.
+     */
+    private fun terminalSupportsAnsi(): Boolean {
+        val out = AnsiConsole.out()
+        return when (out.mode) {
+            AnsiMode.Force -> true
+            AnsiMode.Strip -> false
+            else -> out.type == AnsiType.Native
+        }
+    }
+
     override fun setup() {
         AnsiConsole.systemInstall()
         checkEmoji = true
 
-        // This line looks weird as hell because the magic code to decide if we really have a TTY or not isn't
-        // actually exposed anywhere as a function (weak sauce). So we have to rely on our knowledge of jansi
-        // implementation details.
-        @Suppress("DEPRECATION")
-        usingANSI = AnsiConsole.wrapOutputStream(System.out) !is AnsiOutputStream
+        usingANSI = terminalSupportsAnsi()
 
         if (usingANSI) {
             // This super ugly code hacks into log4j and swaps out its console appender for our own. It's a bit simpler
