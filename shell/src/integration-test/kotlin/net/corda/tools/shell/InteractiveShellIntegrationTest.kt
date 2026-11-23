@@ -177,11 +177,12 @@ class InteractiveShellIntegrationTest {
 
             val channel = session.openChannel("exec") as ChannelExec
             channel.setCommand("start FlowICanRun")
+            // Get the output stream before connecting: JSch drops output that arrives before it is requested, and a quick
+            // command can finish and close the channel before connect() returns, so channel.isConnected can already be false.
+            val output = channel.inputStream
             channel.connect(5000)
 
-            assertTrue(channel.isConnected)
-
-            val response = String(Streams.readAll(channel.inputStream))
+            val response = String(Streams.readAll(output))
             val lines = response.lines()
 
             val linesWithDoneCount = lines.filter { line -> "Done" in line }
@@ -225,11 +226,12 @@ class InteractiveShellIntegrationTest {
 
                 val channel = session.openChannel("exec") as ChannelExec
                 channel.setCommand("start FlowICanRun")
+                // Get the output stream before connecting: JSch drops output that arrives before it is requested, and a quick
+                // command can finish and close the channel before connect() returns, so channel.isConnected can already be false.
+                val output = channel.inputStream
                 channel.connect(5000)
 
-                assertTrue(channel.isConnected)
-
-                val response = String(Streams.readAll(channel.inputStream))
+                val response = String(Streams.readAll(output))
 
                 val linesWithDoneCount = response.lines().filter { line -> "Done" in line }
 
